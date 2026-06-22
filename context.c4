@@ -1,48 +1,73 @@
 model {
   employee = actor 'Employee' {
     description 'Internal user who manages operations.'
+    technology '[Person]'
   }
 
   receptionist = actor 'Receptionist' {
     description 'Internal user who handles front-desk tasks and records information.'
+    technology '[Person]'
   }
 
   owner = actor 'Owner' {
     description 'Business owner who oversees operations and reviews results.'
+    technology '[Person]'
   }
 
   takodu = system 'Takodu' {
     description 'Main application for managing business operations.'
+    technology '[Software System]'
   }
 
-  employee -> takodu 'uses'
-  receptionist -> takodu 'uses'
-  owner -> takodu 'uses'
+  employee -> takodu {
+    title 'uses'
+    technology 'HTTPS'
+  }
+  receptionist -> takodu {
+    title 'uses'
+    technology 'HTTPS'
+  }
+  owner -> takodu {
+    title 'uses'
+    technology 'HTTPS'
+  }
 
   decolecta = system 'Decolecta' {
     description 'Provider for validating Peruvian DNI, RUC, and related data.'
-    technology 'External API'
+    technology '[Software System]'
   }
 
   googleOauth = system 'Google OAuth 2' {
     description 'Google authentication provider.'
-    technology 'OAuth 2.0'
+    technology '[Software System]'
   }
 
   resend = system 'Resend' {
     description 'Email delivery provider.'
-    technology 'Email API'
+    technology '[Software System]'
   }
 
   stripe = system 'Stripe' {
     description 'Payments and billing provider.'
-    technology 'Payments API'
+    technology '[Software System]'
   }
 
-  takodu -> decolecta 'validates documents and data'
-  takodu -> googleOauth 'authenticates users'
-  takodu -> resend 'sends emails'
-  takodu -> stripe 'processes payments'
+  takodu -> decolecta {
+    title 'validates documents and data'
+    technology 'HTTPS'
+  }
+  takodu -> googleOauth {
+    title 'authenticates users'
+    technology 'HTTPS'
+  }
+  takodu -> resend {
+    title 'sends emails'
+    technology 'HTTPS'
+  }
+  takodu -> stripe {
+    title 'processes payments'
+    technology 'HTTPS'
+  }
 }
 
 views {

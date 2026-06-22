@@ -1,33 +1,51 @@
 model {
   extend takodu {
-    webApp = component 'Web App' {
-      description 'Browser-based interface for internal users.'
-      technology 'Browser UI'
+    webApp = component 'Web Application' {
+      description 'Web interface for managing Takodu\'s business operations.'
+      technology '[Container: Next.js 16]'
       style {
         shape browser
       }
     }
 
     api = component 'API' {
-      description 'Core application backend.'
-      technology 'Backend service'
+      description 'Backend API handling petty cash, appointments, integrations, and salon analytics.'
+      technology '[Container: Java 21]'
     }
 
-    database = component 'Database' {
-      description 'Persistent storage for Takodu data.'
-      technology 'Database'
+    database = component 'Takodu Database' {
+      description 'Distributed database for persistent transactional and operational data.'
+      technology '[Container: Cassandra]'
       style {
         shape cylinder
       }
     }
 
-    webApp -> api 'sends requests'
-    api -> database 'reads and writes data'
+    webApp -> api {
+      title 'sends requests'
+      technology 'HTTPS'
+    }
+    api -> database {
+      title 'reads and writes data'
+      technology 'CQL'
+    }
 
-    api -> decolecta 'validates documents and data'
-    api -> googleOauth 'authenticates users'
-    api -> resend 'sends emails'
-    api -> stripe 'processes payments'
+    api -> decolecta {
+      title 'validates documents and data'
+      technology 'HTTPS'
+    }
+    api -> googleOauth {
+      title 'authenticates users'
+      technology 'HTTPS'
+    }
+    api -> resend {
+      title 'sends emails'
+      technology 'HTTPS'
+    }
+    api -> stripe {
+      title 'processes payments'
+      technology 'HTTPS'
+    }
   }
 }
 
