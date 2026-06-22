@@ -1,0 +1,60 @@
+model {
+  employee = actor 'Employee' {
+    description 'Internal user who manages operations.'
+  }
+
+  receptionist = actor 'Receptionist' {
+    description 'Internal user who handles front-desk tasks and records information.'
+  }
+
+  owner = actor 'Owner' {
+    description 'Business owner who oversees operations and reviews results.'
+  }
+
+  takodu = system 'Takodu' {
+    description 'Main application for managing business operations.'
+  }
+
+  employee -> takodu 'uses'
+  receptionist -> takodu 'uses'
+  owner -> takodu 'uses'
+
+  decolecta = system 'Decolecta' {
+    description 'Provider for validating Peruvian DNI, RUC, and related data.'
+    technology 'External API'
+  }
+
+  googleOauth = system 'Google OAuth 2' {
+    description 'Google authentication provider.'
+    technology 'OAuth 2.0'
+  }
+
+  resend = system 'Resend' {
+    description 'Email delivery provider.'
+    technology 'Email API'
+  }
+
+  stripe = system 'Stripe' {
+    description 'Payments and billing provider.'
+    technology 'Payments API'
+  }
+
+  takodu -> decolecta 'validates documents and data'
+  takodu -> googleOauth 'authenticates users'
+  takodu -> resend 'sends emails'
+  takodu -> stripe 'processes payments'
+}
+
+views {
+  view context {
+    title 'Takodu - Context'
+    include employee
+    include receptionist
+    include owner
+    include takodu
+    include decolecta
+    include googleOauth
+    include resend
+    include stripe
+  }
+}

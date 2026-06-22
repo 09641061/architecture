@@ -1,0 +1,39 @@
+model {
+  extend takodu {
+    webApp = component 'Web App' {
+      description 'Browser-based interface for internal users.'
+      technology 'Browser UI'
+      style {
+        shape browser
+      }
+    }
+
+    api = component 'API' {
+      description 'Core application backend.'
+      technology 'Backend service'
+    }
+
+    database = component 'Database' {
+      description 'Persistent storage for Takodu data.'
+      technology 'Database'
+      style {
+        shape cylinder
+      }
+    }
+
+    webApp -> api 'sends requests'
+    api -> database 'reads and writes data'
+
+    api -> decolecta 'validates documents and data'
+    api -> googleOauth 'authenticates users'
+    api -> resend 'sends emails'
+    api -> stripe 'processes payments'
+  }
+}
+
+views {
+  view containers of takodu {
+    title 'Takodu - Containers'
+    include *
+  }
+}
