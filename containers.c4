@@ -1,21 +1,21 @@
 model {
   extend takodu {
-    webApp = component 'Web App' {
-      description 'Browser-based interface for internal users.'
-      technology 'Browser UI'
+    webApp = component 'Web Application' {
+      description 'Web interface for managing Takodu\'s business operations.'
+      technology '[Container: Next.js 16]'
       style {
         shape browser
       }
     }
 
     api = component 'API' {
-      description 'Core application backend.'
-      technology 'Backend service'
+      description 'Backend API handling petty cash, appointments, integrations, and salon analytics.'
+      technology '[Container: Java 21]'
     }
 
-    database = component 'Database' {
-      description 'Persistent storage for Takodu data.'
-      technology 'Database'
+    database = component 'Takodu Database' {
+      description 'Distributed database for persistent transactional and operational data.'
+      technology '[Container: Cassandra]'
       style {
         shape cylinder
       }
