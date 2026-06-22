@@ -19,9 +19,18 @@ model {
     technology '[Software System]'
   }
 
-  employee -> takodu 'uses'
-  receptionist -> takodu 'uses'
-  owner -> takodu 'uses'
+  employee -> takodu {
+    title 'uses'
+    technology 'HTTPS'
+  }
+  receptionist -> takodu {
+    title 'uses'
+    technology 'HTTPS'
+  }
+  owner -> takodu {
+    title 'uses'
+    technology 'HTTPS'
+  }
 
   decolecta = system 'Decolecta' {
     description 'Provider for validating Peruvian DNI, RUC, and related data.'
@@ -43,10 +52,22 @@ model {
     technology '[Software System]'
   }
 
-  takodu -> decolecta 'validates documents and data'
-  takodu -> googleOauth 'authenticates users'
-  takodu -> resend 'sends emails'
-  takodu -> stripe 'processes payments'
+  takodu -> decolecta {
+    title 'validates documents and data'
+    technology 'HTTPS'
+  }
+  takodu -> googleOauth {
+    title 'authenticates users'
+    technology 'HTTPS'
+  }
+  takodu -> resend {
+    title 'sends emails'
+    technology 'HTTPS'
+  }
+  takodu -> stripe {
+    title 'processes payments'
+    technology 'HTTPS'
+  }
 }
 
 views {

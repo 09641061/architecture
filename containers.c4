@@ -21,13 +21,31 @@ model {
       }
     }
 
-    webApp -> api 'sends requests'
-    api -> database 'reads and writes data'
+    webApp -> api {
+      title 'sends requests'
+      technology 'HTTPS'
+    }
+    api -> database {
+      title 'reads and writes data'
+      technology 'CQL'
+    }
 
-    api -> decolecta 'validates documents and data'
-    api -> googleOauth 'authenticates users'
-    api -> resend 'sends emails'
-    api -> stripe 'processes payments'
+    api -> decolecta {
+      title 'validates documents and data'
+      technology 'HTTPS'
+    }
+    api -> googleOauth {
+      title 'authenticates users'
+      technology 'HTTPS'
+    }
+    api -> resend {
+      title 'sends emails'
+      technology 'HTTPS'
+    }
+    api -> stripe {
+      title 'processes payments'
+      technology 'HTTPS'
+    }
   }
 }
 
