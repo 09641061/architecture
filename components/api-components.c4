@@ -1,0 +1,168 @@
+model {
+  extend takodu.api {
+    shared = component 'Shared' {
+      description 'Shared utilities, common domain models, and helper classes.'
+      technology 'Java'
+    }
+
+    iam = component 'IAM' {
+      description 'Identity & Access Management component handling authentication, authorization, and session management.'
+      technology 'Spring Security / Java'
+    }
+
+    billing = component 'Billing' {
+      description 'Processes payments, billing plans, subscriptions, and transaction records.'
+      technology 'Java'
+    }
+
+    crm = component 'CRM' {
+      description 'Customer Relationship Management for end customers (contact info, DNI, phone, birthday, service history, and internal notes).'
+      technology 'Java'
+    }
+
+    business = component 'Business' {
+      description 'Manages the business details, settings, and its physical locations / branches.'
+      technology 'Java'
+    }
+
+    catalog = component 'Catalog' {
+      description 'Configurable catalog of services (e.g. price, duration, availability per branch).'
+      technology 'Java'
+    }
+
+    scheduling = component 'Scheduling' {
+      description 'Manages calendars, appointments, blockouts, rescheduling, and conflicts.'
+      technology 'Java'
+    }
+
+    workforce = component 'Workforce' {
+      description 'Handles employees, schedules, shifts, availability, and assigned branches/services.'
+      technology 'Java'
+    }
+
+    analytics = component 'Analytics' {
+      description 'Aggregates metrics, revenue, appointments, best-selling services, and exports reports.'
+      technology 'Java'
+    }
+
+    cash = component 'Cash' {
+      description 'Manages petty cash (caja chica), incomes, outcomes, movements, and daily closures.'
+      technology 'Java'
+    }
+  }
+
+  // WebApp connections
+  takodu.webApp -> takodu.api.iam {
+    title 'authenticates and manages users'
+    technology 'HTTPS'
+  }
+
+  takodu.webApp -> takodu.api.billing {
+    title 'initiates payments and manages subscriptions'
+    technology 'HTTPS'
+  }
+
+  takodu.webApp -> takodu.api.crm {
+    title 'manages end customer profiles, notes, and service history'
+    technology 'HTTPS'
+  }
+
+  takodu.webApp -> takodu.api.business {
+    title 'configures business details and manages locations'
+    technology 'HTTPS'
+  }
+
+  takodu.webApp -> takodu.api.catalog {
+    title 'defines service catalogs and prices'
+    technology 'HTTPS'
+  }
+
+  takodu.webApp -> takodu.api.scheduling {
+    title 'schedules, updates, and views appointments'
+    technology 'HTTPS'
+  }
+
+  takodu.webApp -> takodu.api.workforce {
+    title 'manages staff profiles, shifts, and branch assignments'
+    technology 'HTTPS'
+  }
+
+  takodu.webApp -> takodu.api.analytics {
+    title 'views financial, staff, and appointment metrics'
+    technology 'HTTPS'
+  }
+
+  takodu.webApp -> takodu.api.cash {
+    title 'registers cash flows, expenses, and closes registers'
+    technology 'HTTPS'
+  }
+
+  // Database connections
+  takodu.api.iam -> takodu.database {
+    title 'reads and writes user accounts'
+    technology 'SQL'
+  }
+
+  takodu.api.billing -> takodu.database {
+    title 'reads and writes billing data'
+    technology 'SQL'
+  }
+
+  takodu.api.crm -> takodu.database {
+    title 'reads and writes customer data and history'
+    technology 'SQL'
+  }
+
+  takodu.api.business -> takodu.database {
+    title 'reads and writes business and branch details'
+    technology 'SQL'
+  }
+
+  takodu.api.catalog -> takodu.database {
+    title 'reads and writes service configurations'
+    technology 'SQL'
+  }
+
+  takodu.api.scheduling -> takodu.database {
+    title 'reads and writes appointments and schedules'
+    technology 'SQL'
+  }
+
+  takodu.api.workforce -> takodu.database {
+    title 'reads and writes staff and shift details'
+    technology 'SQL'
+  }
+
+  takodu.api.analytics -> takodu.database {
+    title 'queries metrics and reports'
+    technology 'SQL'
+  }
+
+  takodu.api.cash -> takodu.database {
+    title 'reads and writes cash flow records'
+    technology 'SQL'
+  }
+
+  // External system connections
+  takodu.api.iam -> googleOauth {
+    title 'authenticates credentials'
+    technology 'HTTPS'
+  }
+
+  takodu.api.billing -> stripe {
+    title 'processes payments'
+    technology 'HTTPS'
+  }
+
+  takodu.api.crm -> decolecta {
+    title 'validates DNI and customer data'
+    technology 'HTTPS'
+  }
+}
+
+views {
+  view components of takodu.api {
+    title 'Takodu - API Components'
+    include *
+  }
+}

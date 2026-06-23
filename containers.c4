@@ -14,8 +14,8 @@ model {
     }
 
     database = component 'Takodu Database' {
-      description 'Distributed database for persistent transactional and operational data.'
-      technology '[Container: Cassandra]'
+      description 'Relational database for persistent transactional and operational data.'
+      technology '[Container: PostgreSQL]'
       style {
         shape cylinder
       }
@@ -27,7 +27,7 @@ model {
     }
     api -> database {
       title 'reads and writes data'
-      technology 'CQL'
+      technology 'SQL'
     }
 
     api -> decolecta {
