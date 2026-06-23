@@ -1,6 +1,6 @@
 # Bounded Contexts - Takodu API
 
-A continuación se detalla la responsabilidad de cada uno de los 9 Bounded Contexts en una sola línea:
+A continuación se detalla la responsabilidad de cada uno de los 10 Bounded Contexts en una sola línea:
 
 1. **`iam`**: Gestiona el registro, autenticación, autorización y control de sesiones de los usuarios del sistema.
 2. **`billing`**: Controla el ciclo de vida de los pagos, planes de suscripción y facturación del negocio SaaS.
@@ -11,3 +11,4 @@ A continuación se detalla la responsabilidad de cada uno de los 9 Bounded Conte
 7. **`workforce`**: Administra los datos del personal, sus roles, turnos laborales, horarios y asignaciones de sedes o servicios.
 8. **`analytics`**: Centraliza el cálculo de métricas financieras, popularidad de servicios, rendimiento de empleados y exportación de reportes.
 9. **`cash`**: Controla el flujo de caja chica (ingresos, egresos y movimientos de efectivo diarios) de manera independiente por local.
+10. **`notifications`**: Encargado de enviar alertas del sistema, correos transaccionales y notificaciones a usuarios y clientes.

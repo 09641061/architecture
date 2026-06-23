@@ -2,52 +2,89 @@ model {
   extend takodu.api {
     shared = component 'Shared' {
       description 'Shared utilities, common domain models, and helper classes.'
-      technology 'Java'
+      technology '[Component: Spring Boot/ Java21]'
     }
 
     iam = component 'IAM' {
       description 'Identity & Access Management component handling authentication, authorization, and session management.'
-      technology 'Spring Security / Java'
+      technology '[Component: Spring Boot/ Java21]'
     }
 
     billing = component 'Billing' {
       description 'Processes payments, billing plans, subscriptions, and transaction records.'
-      technology 'Java'
+      technology '[Component: Spring Boot/ Java21]'
     }
 
     crm = component 'CRM' {
       description 'Customer Relationship Management for end customers (contact info, DNI, phone, birthday, service history, and internal notes).'
-      technology 'Java'
+      technology '[Component: Spring Boot/ Java21]'
     }
 
     business = component 'Business' {
       description 'Manages the business details, settings, and its physical locations / branches.'
-      technology 'Java'
+      technology '[Component: Spring Boot/ Java21]'
     }
 
     catalog = component 'Catalog' {
       description 'Configurable catalog of services (e.g. price, duration, availability per branch).'
-      technology 'Java'
+      technology '[Component: Spring Boot/ Java21]'
     }
 
     scheduling = component 'Scheduling' {
       description 'Manages calendars, appointments, blockouts, rescheduling, and conflicts.'
-      technology 'Java'
+      technology '[Component: Spring Boot/ Java21]'
     }
 
     workforce = component 'Workforce' {
       description 'Handles employees, schedules, shifts, availability, and assigned branches/services.'
-      technology 'Java'
+      technology '[Component: Spring Boot/ Java21]'
     }
 
     analytics = component 'Analytics' {
       description 'Aggregates metrics, revenue, appointments, best-selling services, and exports reports.'
-      technology 'Java'
+      technology '[Component: Spring Boot/ Java21]'
     }
 
     cash = component 'Cash' {
       description 'Manages petty cash (caja chica), incomes, outcomes, movements, and daily closures.'
-      technology 'Java'
+      technology '[Component: Spring Boot/ Java21]'
+    }
+
+    notifications = component 'Notifications' {
+      description 'Handles sending system alerts, transactional emails, and notifications.'
+      technology '[Component: Spring Boot/ Java21]'
+    }
+
+    // All business components use the Shared module
+    iam -> shared {
+      title 'uses'
+    }
+    billing -> shared {
+      title 'uses'
+    }
+    crm -> shared {
+      title 'uses'
+    }
+    business -> shared {
+      title 'uses'
+    }
+    catalog -> shared {
+      title 'uses'
+    }
+    scheduling -> shared {
+      title 'uses'
+    }
+    workforce -> shared {
+      title 'uses'
+    }
+    analytics -> shared {
+      title 'uses'
+    }
+    cash -> shared {
+      title 'uses'
+    }
+    notifications -> shared {
+      title 'uses'
     }
   }
 
@@ -156,6 +193,11 @@ model {
 
   takodu.api.crm -> decolecta {
     title 'validates DNI and customer data'
+    technology 'HTTPS'
+  }
+
+  takodu.api.notifications -> resend {
+    title 'sends email notifications'
     technology 'HTTPS'
   }
 }
