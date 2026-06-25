@@ -1,21 +1,21 @@
 model {
   extend takodu {
-    webApp = component 'Web Application' {
+    webApp = container 'Web Application' {
       description 'Web interface for managing Takodu\'s business operations.'
-      technology '[Container: Next.js 16]'
+      technology 'Next.js 16'
       style {
         shape browser
       }
     }
 
-    api = component 'API' {
-      description 'Backend API handling petty cash, appointments, integrations, and salon analytics.'
-      technology '[Container: Java 21]'
+    api = container 'API' {
+      description 'Backend API handling business logic, appointments, and integrations.'
+      technology 'Java 21 / Spring Boot'
     }
 
-    database = component 'Takodu Database' {
+    database = container 'Takodu Database' {
       description 'Relational database for persistent transactional and operational data.'
-      technology '[Container: PostgreSQL]'
+      technology 'PostgreSQL'
       style {
         shape cylinder
       }
@@ -32,7 +32,7 @@ model {
 
     api -> decolecta {
       title 'validates documents and data'
-      technology 'HTTPS'
+      technology 'HTTPS (Circuit Breaker)'
     }
     api -> googleOauth {
       title 'authenticates users'
@@ -40,11 +40,11 @@ model {
     }
     api -> resend {
       title 'sends emails'
-      technology 'HTTPS'
+      technology 'HTTPS (Asynchronous)'
     }
     api -> stripe {
       title 'processes payments'
-      technology 'HTTPS'
+      technology 'HTTPS (Circuit Breaker)'
     }
   }
 }
