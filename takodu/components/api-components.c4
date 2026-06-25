@@ -41,8 +41,8 @@ model {
     }
 
     analytics = component 'Analytics' {
-      description 'Aggregates metrics, revenue, appointments, best-selling services, and exports reports.'
-      technology '[Component: Spring Boot/ Java21]'
+      description 'Aggregates metrics, revenue, appointments, and best-selling services using optimized, non-blocking queries.'
+      technology 'Spring Boot / SQL'
     }
 
     cash = component 'Cash' {
@@ -51,8 +51,8 @@ model {
     }
 
     notifications = component 'Notifications' {
-      description 'Handles sending system alerts, transactional emails, and notifications.'
-      technology '[Component: Spring Boot/ Java21]'
+      description 'Handles sending system alerts and transactional emails asynchronously.'
+      technology 'Spring Boot (Async TaskExecutor)'
     }
 
     // All business components use the Shared module
@@ -172,11 +172,16 @@ model {
 
   takodu.api.analytics -> takodu.database {
     title 'queries metrics and reports'
-    technology 'SQL'
+    technology 'SQL (Optimized / Non-blocking)'
   }
 
   takodu.api.cash -> takodu.database {
     title 'reads and writes cash flow records'
+    technology 'SQL'
+  }
+
+  takodu.api.notifications -> takodu.database {
+    title 'reads and writes notification logs'
     technology 'SQL'
   }
 
@@ -188,17 +193,17 @@ model {
 
   takodu.api.billing -> stripe {
     title 'processes payments'
-    technology 'HTTPS'
+    technology 'HTTPS (Circuit Breaker)'
   }
 
   takodu.api.crm -> decolecta {
     title 'validates DNI and customer data'
-    technology 'HTTPS'
+    technology 'HTTPS (Circuit Breaker)'
   }
 
   takodu.api.notifications -> resend {
     title 'sends email notifications'
-    technology 'HTTPS'
+    technology 'HTTPS (Asynchronous via Thread Pool)'
   }
 }
 
