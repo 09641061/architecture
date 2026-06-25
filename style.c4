@@ -8,4 +8,8 @@ specification {
   element system
   element container
   element component
+
+  deploymentNode environment
+  deploymentNode server
+  deploymentNode storage
 }
