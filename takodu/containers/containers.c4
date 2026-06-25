@@ -1,0 +1,57 @@
+model {
+  extend takodu {
+    webApp = component 'Web Application' {
+      description 'Web interface for managing Takodu\'s business operations.'
+      technology '[Container: Next.js 16]'
+      style {
+        shape browser
+      }
+    }
+
+    api = component 'API' {
+      description 'Backend API handling petty cash, appointments, integrations, and salon analytics.'
+      technology '[Container: Java 21]'
+    }
+
+    database = component 'Takodu Database' {
+      description 'Relational database for persistent transactional and operational data.'
+      technology '[Container: PostgreSQL]'
+      style {
+        shape cylinder
+      }
+    }
+
+    webApp -> api {
+      title 'sends requests'
+      technology 'HTTPS'
+    }
+    api -> database {
+      title 'reads and writes data'
+      technology 'SQL'
+    }
+
+    api -> decolecta {
+      title 'validates documents and data'
+      technology 'HTTPS'
+    }
+    api -> googleOauth {
+      title 'authenticates users'
+      technology 'HTTPS'
+    }
+    api -> resend {
+      title 'sends emails'
+      technology 'HTTPS'
+    }
+    api -> stripe {
+      title 'processes payments'
+      technology 'HTTPS'
+    }
+  }
+}
+
+views {
+  view containers of takodu {
+    title 'Takodu - Containers'
+    include *
+  }
+}
