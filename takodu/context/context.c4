@@ -52,6 +52,11 @@ model {
     technology '[Software System]'
   }
 
+  aiProvider = system 'AI Provider' {
+    description 'AI model provider (e.g. Gemini, OpenAI, or Self-hosted API).'
+    technology '[Software System]'
+  }
+
   takodu -> decolecta {
     title 'validates documents and data'
     technology 'HTTPS'
@@ -68,6 +73,10 @@ model {
     title 'processes payments'
     technology 'HTTPS'
   }
+  takodu -> aiProvider {
+    title 'sends prompts and processes natural language'
+    technology 'HTTPS'
+  }
 }
 
 views {
@@ -81,5 +90,6 @@ views {
     include googleOauth
     include resend
     include stripe
+    include aiProvider
   }
 }

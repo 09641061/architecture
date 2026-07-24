@@ -106,17 +106,17 @@ Este documento detalla los requisitos funcionales para cada uno de los Bounded C
 
 ---
 
-## 9. Cash (Caja Chica / Control de Efectivo)
-*Controla el flujo de caja chica (ingresos, egresos y movimientos de efectivo diarios) de manera independiente por local.*
+## 9. Chatbot (Asistente de IA)
+*Integra capacidades de asistente inteligente para interactuar conversacionalmente con los servicios del core, gestionar el historial de chats e integrarse con proveedores de IA.*
 
-* Apertura de Caja Chica: El sistema debe permitir abrir la caja diaria registrando de forma obligatoria un monto inicial en efectivo (saldo base), el empleado responsable de la apertura y la fecha/hora.
-* Registro de Ingresos: El sistema debe registrar de forma automática todos los ingresos por cobro de citas, vinculando el método de pago (efectivo, tarjeta, transferencia, yape/plin) y el comprobante correspondiente.
-* Registro de Egresos: El sistema debe permitir declarar salidas manuales de dinero en efectivo de la caja chica (gastos menores, compras, vueltos), exigiendo obligatoriamente un concepto, monto, beneficiario y comprobante digital (foto o PDF).
-* Arqueo y Cierre de Caja: El sistema debe exigir un arqueo al cierre de caja, donde el cajero debe ingresar el saldo físico contado y el sistema calculará automáticamente la diferencia (sobrante o faltante) respecto al saldo teórico.
-* Control de Descuadres: Si la diferencia calculada en el arqueo arroja un descuadre fuera del límite de tolerancia, el sistema debe bloquear el cierre de caja y requerir la aprobación manual mediante contraseña o PIN de un Administrador o Owner.
-* Traslados de Efectivo (Remesas): El sistema debe permitir registrar salidas de efectivo de la caja chica con destino a cuentas bancarias o cajas fuertes de seguridad (retiro de excedentes), disminuyendo el saldo en caja chica.
-* Reporte de Cierre de Caja: Al realizar el cierre, el sistema debe emitir un reporte final detallado que resuma el estado de la caja chica y el desglose de movimientos por método de pago.
-
+* Interfaz de Chat y Consumo de APIs: El asistente de IA debe funcionar como una interfaz de chat interactiva que consume endpoints del backend (queries/HTTP) para realizar consultas y acciones en tiempo real (por ejemplo, visualizar las citas de un cliente).
+* Historial de Chat por Empleado: El sistema debe persistir un historial de chat indexado e independiente para cada empleado de la organización que interactúe con el asistente.
+* Integración Flexible de Modelos: El sistema debe permitir configurar la comunicación con modelos de lenguaje a través de la API Key de un proveedor externo (e.g. OpenAI, Gemini) o un endpoint a un modelo auto-alojado (Self-host).
+* Seguridad y Control de Acceso: El asistente de IA debe adaptar sus respuestas y limitar sus capacidades estrictamente en función del rol y permisos del empleado autenticado.
+* Consultas y Operaciones de Citas: El asistente debe permitir el registro de citas y reservas de manera conversacional, debiendo realizar de forma obligatoria preguntas aclaratorias para confirmar todos los datos antes de procesar la reserva.
+* Consulta y Gestión del CRM: El asistente debe permitir la creación, edición y consulta de la información de los clientes del CRM a través de comandos en lenguaje natural.
+* Resúmenes Analíticos: El asistente de IA debe ser capaz de proporcionar resúmenes conversacionales y explicativos de las analíticas operativas y financieras a solicitud del usuario.
+* Configuración de la Organización: El asistente debe permitir la creación de roles, la configuración de horarios y turnos de trabajo, y la gestión del catálogo de servicios de forma conversacional.
 
 
 ---
