@@ -45,9 +45,9 @@ model {
       technology 'Spring Boot / SQL'
     }
 
-    cash = component 'Cash' {
-      description 'Manages petty cash (caja chica), incomes, outcomes, movements, and daily closures.'
-      technology '[Component: Spring Boot/ Java21]'
+    chatbot = component 'Chatbot' {
+      description 'AI Assistant providing natural language interfaces to query core context endpoints and managing employee chat history.'
+      technology '[Component: Spring Boot / Java21]'
     }
 
     notifications = component 'Notifications' {
@@ -80,7 +80,7 @@ model {
     analytics -> shared {
       title 'uses'
     }
-    cash -> shared {
+    chatbot -> shared {
       title 'uses'
     }
     notifications -> shared {
@@ -129,9 +129,9 @@ model {
     technology 'HTTPS'
   }
 
-  takodu.webApp -> takodu.api.cash {
-    title 'registers cash flows, expenses, and closes registers'
-    technology 'HTTPS'
+  takodu.webApp -> takodu.api.chatbot {
+    title 'chats with assistant and views history'
+    technology 'HTTPS (SSE)'
   }
 
   // Database connections
@@ -175,9 +175,9 @@ model {
     technology 'SQL (Optimized / Non-blocking)'
   }
 
-  takodu.api.cash -> takodu.database {
-    title 'reads and writes cash flow records'
-    technology 'SQL'
+  takodu.api.chatbot -> takodu.database {
+    title 'reads and writes chat sessions and logs'
+    technology 'SQL (JSONB)'
   }
 
   takodu.api.notifications -> takodu.database {
@@ -204,6 +204,11 @@ model {
   takodu.api.notifications -> resend {
     title 'sends email notifications'
     technology 'HTTPS (Asynchronous via Thread Pool)'
+  }
+
+  takodu.api.chatbot -> aiProvider {
+    title 'sends prompts and processes natural language'
+    technology 'HTTPS (SSE / RestClient)'
   }
 }
 

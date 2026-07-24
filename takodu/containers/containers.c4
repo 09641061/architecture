@@ -46,6 +46,10 @@ model {
       title 'processes payments'
       technology 'HTTPS (Circuit Breaker)'
     }
+    api -> aiProvider {
+      title 'sends prompts and processes natural language'
+      technology 'HTTPS'
+    }
   }
 }
 

@@ -10,5 +10,5 @@ A continuación se detalla la responsabilidad de cada uno de los 10 Bounded Cont
 6. **`scheduling`**: Gestiona la agenda, reserva de citas, bloqueos de horario, reprogramaciones y cancelaciones sin conflictos.
 7. **`workforce`**: Administra los datos del personal, sus roles, turnos laborales, horarios y asignaciones de sedes o servicios.
 8. **`analytics`**: Centraliza el cálculo de métricas financieras, popularidad de servicios, rendimiento de empleados y exportación de reportes.
-9. **`cash`**: Controla el flujo de caja chica (ingresos, egresos y movimientos de efectivo diarios) de manera independiente por local.
+9. **`chatbot`**: Asistente de IA que interactúa por chat para consultar citas, clientes y realizar acciones mediante APIs del core, almacenando el historial por empleado e integrando con proveedores externos de IA.
 10. **`notifications`**: Encargado de enviar alertas del sistema, correos transaccionales y notificaciones a usuarios y clientes.
