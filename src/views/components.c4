@@ -31,9 +31,18 @@ views {
       systems they integrate with (LLM, OAuth, payments,
       identity lookup, email).
     '
-    include takodu.haimiya.*
-    include takodu.haimiyaDb, takodu.cache, takodu.openinary, takodu.garage, takodu.gorush, takodu.gorushDb
-    include deepseek, google, stripe, decoleta, ses
-    autoLayout LeftRight
+    group 'Haimiya API' {
+      include takodu.haimiya.*
+    }
+    style takodu.haimiya.* {
+      color primary
+    }
+    group 'Internal Containers' {
+      include takodu.haimiyaDb, takodu.cache, takodu.openinary, takodu.garage, takodu.gorush, takodu.gorushDb
+    }
+    group 'External Services' {
+      include deepseek, google, stripe, decoleta, ses
+    }
+    autoLayout LeftRight 0 0
   }
 }

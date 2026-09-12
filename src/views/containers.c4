@@ -27,7 +27,9 @@ views {
       include takodu.gremory, takodu.haimiya, takodu.openinary, takodu.garage, takodu.gorush, takodu.haimiyaDb, takodu.gorushDb, takodu.cache
     }
     include owner, employer
-    include deepseek, decoleta, ses, google, stripe
+    group 'External Services' {
+      include deepseek, decoleta, ses, google, stripe
+    }
     autoLayout LeftRight
   }
 }
