@@ -51,6 +51,11 @@ views {
       group 'dokploy takodu cloud' {
         color: indigo
 
+        // The Dokploy container itself — the self-hosted PaaS that
+        // owns the lifecycle of every container running on the
+        // NixOS servers below.
+        include takodu.dokploy
+
         // First NixOS server: azusa, the core business node.
         group 'azusa nixos server' {
           color: secondary

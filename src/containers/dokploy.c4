@@ -1,0 +1,21 @@
+model {
+
+  // === Containers > takodu > Dokploy =======================================
+  // C4 level 2: self-hosted Docker-based PaaS that orchestrates the
+  // azusa nixos server and kota nixos server. Acts as the deployment
+  // manager for the platform — owns the lifecycle of every container
+  // that runs on the NixOS servers. The same name appears as a visual
+  // group ("dokploy takodu cloud") in the deploy view.
+
+  extend takodu {
+    dokploy = webapp 'Dokploy' {
+      description '
+        Self-hosted Docker-based PaaS that
+        orchestrates the takodu cloud containers
+        on the azusa and kota NixOS servers.
+      '
+      technology 'Dokploy'
+      icon: ../../icons/dokploy.svg
+    }
+  }
+}

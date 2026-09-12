@@ -217,4 +217,20 @@ model {
   takodu.gorush -> takodu.gorushDb 'Persists push queue state, device subscriptions, and delivery logs' {
     technology 'JDBC/PostgreSQL'
   }
+
+  // ---- Deployment manager -> Managed container -----------------------------
+  // Dokploy is the self-hosted PaaS that owns the deployment lifecycle of
+  // every container running on the NixOS servers. Edges below point to
+  // the primary container of each managed stack; the rest of the stack
+  // (databases, cache, object store) is co-deployed with its owner and
+  // therefore implicitly managed too.
+  takodu.dokploy -> takodu.haimiya 'Orchestrates the Haimiya stack on azusa nixos server' {
+    technology 'Docker'
+  }
+  takodu.dokploy -> takodu.gorush 'Orchestrates the Gorush stack on kota nixos server' {
+    technology 'Docker'
+  }
+  takodu.dokploy -> takodu.openinary 'Orchestrates the Openinary media service on kota nixos server' {
+    technology 'Docker'
+  }
 }
