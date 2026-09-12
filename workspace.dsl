@@ -7,8 +7,22 @@ workspace "Takodu Platform" "Agentic SaaS for MYPE appointment scheduling in Lim
 
         # Central System
         takodu = softwareSystem "Takodu Platform" "Agentic SaaS that automates appointment scheduling for MYPEs via a conversational AI agent, eliminating double-booking and no-shows." {
-            gremory = container "Gremory" "Browser-based app for MYPE owners and employees to manage services, staff, and the daily agenda." "Next.js 15, TypeScript" "Container,Web,Next.js"
-            haimiya = container "Haimiya"   "REST API that handles business logic, integrates external providers, and orchestrates persistence."                       "Java 25, Spring Boot 3" "Container,Backend,Spring"
+            gremory = container "Gremory" "Browser-based app for MYPE owners and employees to manage services, staff, and the daily agenda." "Next.js 16, TypeScript" "Container,Web,Next.js"
+            haimiya = container "Haimiya"   "REST API that handles business logic, integrates external providers, and orchestrates persistence."                       "Java 25, Spring Boot 3" "Container,Backend,Spring" {
+                iam           = component "IAM"             "Identity, authentication, and session management. Supports Google OAuth and email sign-in."             "Spring Boot, Java 25" "Component,iam"
+                assistant     = component "Assistant"       "Conversational booking agent backed by DeepSeek. Caches availability, appointments, and services."   "Spring Boot, Java 25" "Component,assistant"
+                scheduling    = component "Scheduling"      "Appointment scheduling: availability, bookings, and lifecycle states."                                    "Spring Boot, Java 25" "Component,scheduling"
+                workforce     = component "Workforce"       "Staff, roles, permissions, and Redis-backed invitation tokens."                                           "Spring Boot, Java 25" "Component,workforce"
+                business      = component "Business"        "MYPE tenant management: organizations and establishments."                                                "Spring Boot, Java 25" "Component,business"
+                catalog       = component "Catalog"         "Services catalog: offerings, durations, and pricing."                                                     "Spring Boot, Java 25" "Component,catalog"
+                crm           = component "CRM"            "Customer records with Decolecta-backed identity lookup."                                                   "Spring Boot, Java 25" "Component,crm"
+                profiles      = component "Profiles"        "Owner and employee profile records."                                                                      "Spring Boot, Java 25" "Component,profiles"
+                billing       = component "Billing"         "Subscriptions, invoices, and Stripe payments."                                                            "Spring Boot, Java 25" "Component,billing"
+                media         = component "Media"           "Media asset gateway that delegates processing to Openinary. No own database schema."                    "Spring Boot, Java 25" "Component,media"
+                notifications = component "Notifications"  "Email (SES) and push (Gorush) dispatcher."                                                                  "Spring Boot, Java 25" "Component,notifications"
+                audit         = component "Audit"           "Appends audit events received from other contexts."                                                       "Spring Boot, Java 25" "Component,audit"
+                analytics     = component "Analytics"       "Reports and KPIs. Reads operational data via dedicated read repositories and gates plan access through billing ACL." "Spring Boot, Java 25" "Component,analytics"
+            }
             db     = container "Database"         "Relational store for users, businesses, services, staff, appointments, and bookings."                        "PostgreSQL"             "Container,PostgreSQL"
             cache  = container "Cache"            "In-memory cache for sessions, locks, and hot read paths."                                                  "Redis"                  "Container,Redis"
         }
@@ -29,16 +43,63 @@ workspace "Takodu Platform" "Agentic SaaS for MYPE appointment scheduling in Lim
         # Container Relationships (system-level relationships are inferred by Structurizr)
         gremory -> haimiya "Calls business endpoints over HTTPS" "HTTPS/REST"
 
-        haimiya -> deepseek  "Routes natural-language queries to the LLM to resolve availability"            "HTTPS/REST"
-        haimiya -> decoleta  "Enriches MYPE operations data through a third-party API"                       "HTTPS/REST"
-        haimiya -> openinary "Processes and optimizes media assets uploaded by MYPEs"                        "HTTPS/REST"
-        haimiya -> ses       "Sends booking confirmations, reminders, and operational notifications"        "HTTPS/REST"
-        haimiya -> gorush    "Delivers real-time schedule alerts to employee devices"                       "HTTPS/REST"
-        haimiya -> google    "Authenticates MYPE users through Google accounts"                              "HTTPS/OAuth 2"
-        haimiya -> stripe    "Charges MYPE subscription fees and one-off payments"                           "HTTPS/REST"
+        # Component-to-data-store relationships
+        # Redis users: iam (sessions/tokens), assistant (@Cacheable on ACL facades), workforce (invitation tokens)
+        # PostgreSQL users: 12 of 13 contexts; media has no own schema (delegates everything to Openinary)
+        iam           -> cache  "Stores sessions, tokens, and rate-limit counters"           "RESP/Redis"
+        assistant     -> cache  "Caches availability, appointments, and services"            "RESP/Redis"
+        workforce     -> cache  "Indexes invitation tokens"                                  "RESP/Redis"
 
-        haimiya -> db        "Reads and writes business data"                                                 "JDBC/PostgreSQL"
-        haimiya -> cache     "Caches hot read paths, sessions, and distributed locks"                         "RESP/Redis"
+        iam           -> db     "Reads and writes users, roles, and sessions"                "JDBC/PostgreSQL"
+        assistant     -> db     "Persists conversation history and resolved intents"          "JDBC/PostgreSQL"
+        scheduling    -> db     "Reads and writes appointments and availability"             "JDBC/PostgreSQL"
+        workforce     -> db     "Reads and writes staff, roles, and permissions"             "JDBC/PostgreSQL"
+        business      -> db     "Reads and writes organizations and establishments"          "JDBC/PostgreSQL"
+        catalog       -> db     "Reads and writes services and pricing"                       "JDBC/PostgreSQL"
+        crm           -> db     "Reads and writes customers"                                 "JDBC/PostgreSQL"
+        profiles      -> db     "Reads and writes owner and employee profiles"                "JDBC/PostgreSQL"
+        billing       -> db     "Reads and writes subscriptions and invoices"                 "JDBC/PostgreSQL"
+        notifications -> db     "Reads and writes notification templates and logs"            "JDBC/PostgreSQL"
+        audit         -> db     "Appends audit events"                                        "JDBC/PostgreSQL"
+        analytics     -> db     "Reads operational data via dedicated read repositories"      "JDBC/PostgreSQL"
+
+        # Cross-context ACL relationships (derived from each context's `import com.takodu.<other>.interfaces.acl` / `application.acl`)
+        iam           -> notifications "Sends auth-related notifications via ACL"              "ACL"
+        assistant     -> business      "Resolves tenant and establishment data via ACL"       "ACL"
+        assistant     -> catalog       "Resolves service catalog data via ACL"                "ACL"
+        assistant     -> crm           "Resolves customer identity and records via ACL"      "ACL"
+        assistant     -> scheduling    "Resolves availability and appointment data via ACL"   "ACL"
+        assistant     -> workforce     "Resolves staff and permission data via ACL"           "ACL"
+        analytics     -> billing       "Gates plan access via ACL"                             "ACL"
+        audit         -> business      "Resolves tenant context for audit records via ACL"    "ACL"
+        audit         -> workforce     "Resolves staff context for audit records via ACL"     "ACL"
+        billing       -> business      "Resolves tenant and establishment data via ACL"       "ACL"
+        billing       -> iam           "Resolves user identity and roles via ACL"             "ACL"
+        business      -> billing       "Resolves plan limits and subscription status via ACL" "ACL"
+        business      -> iam           "Resolves user identity and roles via ACL"             "ACL"
+        business      -> media         "Resolves media asset references via ACL"              "ACL"
+        business      -> workforce     "Resolves staff and permission data via ACL"           "ACL"
+        catalog       -> workforce     "Resolves staff permissions via ACL"                    "ACL"
+        crm           -> business      "Resolves tenant and establishment data via ACL"       "ACL"
+        crm           -> workforce     "Resolves staff data via ACL"                          "ACL"
+        notifications -> iam           "Resolves user contact info via ACL"                    "ACL"
+        notifications -> workforce     "Resolves staff data via ACL"                          "ACL"
+        profiles      -> media         "Resolves media asset references via ACL"              "ACL"
+        scheduling    -> workforce     "Resolves staff availability via ACL"                  "ACL"
+        workforce     -> billing       "Resolves plan limits via ACL"                          "ACL"
+        workforce     -> business      "Resolves tenant data via ACL"                         "ACL"
+        workforce     -> iam           "Resolves user identity and roles via ACL"             "ACL"
+        workforce     -> notifications "Resolves notification preferences via ACL"             "ACL"
+        workforce     -> profiles      "Resolves profile data via ACL"                        "ACL"
+
+        # Component-to-external-system relationships (verified against actual outbound HTTP clients / SDKs)
+        iam           -> google    "Exchanges authorization codes for Google OAuth tokens"          "HTTPS/OAuth 2"
+        assistant     -> deepseek  "Sends chat completion requests to the LLM"                       "HTTPS/REST"
+        billing       -> stripe    "Creates checkout sessions and processes subscription charges"    "HTTPS/REST"
+        crm           -> decoleta  "Looks up customer identity by document number"                   "HTTPS/REST"
+        media         -> openinary "Uploads and transforms media assets"                             "HTTPS/REST"
+        notifications -> ses       "Sends transactional email through Amazon SESv2"                 "HTTPS/REST"
+        notifications -> gorush    "Dispatches push notifications to employee devices"               "HTTPS/REST"
     }
 
     views {
@@ -50,6 +111,12 @@ workspace "Takodu Platform" "Agentic SaaS for MYPE appointment scheduling in Lim
 
         container takodu "TakoduContainers" {
             description "Container diagram for the Takodu Platform"
+            include *
+            autoLayout lr
+        }
+
+        component haimiya "TakoduComponents" {
+            description "Component diagram for Haimiya API Platform"
             include *
             autoLayout lr
         }
