@@ -2,11 +2,16 @@ workspace "Takodu Platform" "Agentic SaaS for MYPE appointment scheduling in Lim
 
     model {
         # Users
-        owner    = person "MYPE Owner"    "Owner or administrator of a MYPE service business. Configures services, staff, and monitors occupation."
-        employer = person "MYPE Employee" "Frontline worker (receptionist, stylist, therapist, assistant). Consults the daily agenda and receives reschedule alerts."
+        owner    = person "MYPE Owner"    "Owner or administrator of a MYPE business. Manages services, staff, and occupation reports."
+        employer = person "MYPE Employee" "Frontline MYPE worker (receptionist, stylist, therapist). Checks the daily agenda and receives reschedule alerts."
 
         # Central System
-        takodu = softwareSystem "Takodu Platform" "Agentic SaaS that automates appointment scheduling for MYPEs via a conversational AI agent, eliminating double-booking and no-shows."
+        takodu = softwareSystem "Takodu Platform" "Agentic SaaS that automates appointment scheduling for MYPEs via a conversational AI agent, eliminating double-booking and no-shows." {
+            gremory = container "Gremory" "Browser-based app for MYPE owners and employees to manage services, staff, and the daily agenda." "Next.js 15, TypeScript" "Container,Web,Next.js"
+            haimiya = container "Haimiya"   "REST API that handles business logic, integrates external providers, and orchestrates persistence."                       "Java 25, Spring Boot 3" "Container,Backend,Spring"
+            db     = container "Database"         "Relational store for users, businesses, services, staff, appointments, and bookings."                        "PostgreSQL"             "Container,PostgreSQL"
+            cache  = container "Cache"            "In-memory cache for sessions, locks, and hot read paths."                                                  "Redis"                  "Container,Redis"
+        }
 
         # External Systems
         deepseek  = softwareSystem "DeepSeek Platform"     "LLM provider powering the RAG-based conversational booking agent."                       "External,AI,DeepSeek"
@@ -17,23 +22,34 @@ workspace "Takodu Platform" "Agentic SaaS for MYPE appointment scheduling in Lim
         google    = softwareSystem "Google OAuth 2"        "Identity provider for MYPE owners and employees to sign in with Google accounts."        "External,Google"
         stripe    = softwareSystem "Stripe"                "Payment platform for MYPE subscription billing and one-off charges."                    "External,Stripe"
 
-        # User Relationships
-        owner    -> takodu "Manages subscription, services, staff, and occupation reports"
-        employer -> takodu "Consults the daily agenda and receives reschedule notifications"
+        # User Relationships (person -> container; system-level inferred for the context view)
+        owner    -> gremory "Manages subscription, services, staff, and occupation reports"
+        employer -> gremory "Checks the daily agenda and receives reschedule alerts"
 
-        # System Relationships
-        takodu -> deepseek  "Routes natural-language queries to the LLM to resolve availability"            "HTTPS/REST"
-        takodu -> decoleta  "Enriches MYPE operations data through a third-party API"                         "HTTPS/REST"
-        takodu -> openinary "Processes and optimizes media assets uploaded by MYPEs"                          "HTTPS/REST"
-        takodu -> ses       "Sends booking confirmations, reminders, and operational notifications"         "HTTPS/REST"
-        takodu -> gorush    "Delivers real-time schedule alerts to employee devices"                        "HTTPS/REST"
-        takodu -> google    "Authenticates MYPE users through Google accounts"                               "HTTPS/OAuth 2"
-        takodu -> stripe    "Charges MYPE subscription fees and one-off payments"                            "HTTPS/REST"
+        # Container Relationships (system-level relationships are inferred by Structurizr)
+        gremory -> haimiya "Calls business endpoints over HTTPS" "HTTPS/REST"
+
+        haimiya -> deepseek  "Routes natural-language queries to the LLM to resolve availability"            "HTTPS/REST"
+        haimiya -> decoleta  "Enriches MYPE operations data through a third-party API"                       "HTTPS/REST"
+        haimiya -> openinary "Processes and optimizes media assets uploaded by MYPEs"                        "HTTPS/REST"
+        haimiya -> ses       "Sends booking confirmations, reminders, and operational notifications"        "HTTPS/REST"
+        haimiya -> gorush    "Delivers real-time schedule alerts to employee devices"                       "HTTPS/REST"
+        haimiya -> google    "Authenticates MYPE users through Google accounts"                              "HTTPS/OAuth 2"
+        haimiya -> stripe    "Charges MYPE subscription fees and one-off payments"                           "HTTPS/REST"
+
+        haimiya -> db        "Reads and writes business data"                                                 "JDBC/PostgreSQL"
+        haimiya -> cache     "Caches hot read paths, sessions, and distributed locks"                         "RESP/Redis"
     }
 
     views {
         systemContext takodu "TakoduContext" {
             description "System Context diagram for the Takodu Platform"
+            include *
+            autoLayout lr
+        }
+
+        container takodu "TakoduContainers" {
+            description "Container diagram for the Takodu Platform"
             include *
             autoLayout lr
         }
@@ -82,6 +98,26 @@ workspace "Takodu Platform" "Agentic SaaS for MYPE appointment scheduling in Lim
                 border dashed
                 stroke #6b7280
                 strokeWidth 2
+            }
+            element "Web" {
+                background #0ea5e9
+            }
+            element "Backend" {
+                background #2563eb
+            }
+            element "Next.js" {
+                background #000000
+            }
+            element "Spring" {
+                background #6db33f
+            }
+            element "PostgreSQL" {
+                shape cylinder
+                background #336791
+            }
+            element "Redis" {
+                shape cylinder
+                background #dc382d
             }
         }
     }
