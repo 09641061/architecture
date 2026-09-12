@@ -1,16 +1,18 @@
 views {
 
   // === Containers ==========================================================
-  // C4 level 2: Takodu expanded to show its containers (Gremory, Haimiya,
-  // PostgreSQL, Redis). Actors are included because they USE Gremory.
+  // C4 level 2: Gremory, Haimiya, PostgreSQL, and Redis are grouped inside
+  // the Takodu boundary. Actors remain outside because they use Gremory.
 
   view containers of takodu {
     title 'Takodu Platform — Containers'
     description '
-      Deployable units inside Takodu: web app, REST API,
-      PostgreSQL, Redis. Includes actors since they use Gremory.
+      Gremory, Haimiya, PostgreSQL, and Redis inside the Takodu Platform boundary.
+      Actors remain outside the platform.
     '
-    include takodu.*
+    group 'Takodu Platform' {
+      include takodu.gremory, takodu.haimiya, takodu.db, takodu.cache
+    }
     include owner, employer
     autoLayout LeftRight
   }
