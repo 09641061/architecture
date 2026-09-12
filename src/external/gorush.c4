@@ -1,0 +1,14 @@
+model {
+
+  // === External: Gorush =====================================================
+  // Push notification gateway for real-time schedule alerts to employee devices.
+
+  gorush = system 'Gorush' {
+    #external, #push
+    description '
+      Push notification gateway for real-time
+      schedule alerts to employee devices.
+    '
+    technology 'Gorush'
+  }
+}

@@ -1,0 +1,14 @@
+model {
+
+  // === External: Decoleta API ================================================
+  // Third-party API consumed to enrich MYPE operations data.
+
+  decoleta = system 'Decoleta API' {
+    #external, #api
+    description '
+      Third-party API consumed to enrich
+      MYPE operations data.
+    '
+    technology 'Decoleta'
+  }
+}

@@ -1,0 +1,15 @@
+views {
+
+  // === Components: Haimiya =================================================
+  // C4 level 3: 13 components inside the Haimiya REST API.
+  // No actors, no external systems — only the internals of Haimiya.
+
+  view haimiyaComponents of takodu.haimiya {
+    title 'Haimiya API — Components'
+    description '
+      Bounded contexts inside the Haimiya REST API.
+    '
+    include takodu.haimiya.*
+    autoLayout LeftRight
+  }
+}

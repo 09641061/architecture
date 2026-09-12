@@ -1,0 +1,14 @@
+model {
+
+  // === External: Openinary ==================================================
+  // Media service used to process and optimize assets uploaded by MYPEs.
+
+  openinary = system 'Openinary' {
+    #external, #api
+    description '
+      Media service used to process and optimize
+      assets uploaded by MYPEs.
+    '
+    technology 'Openinary'
+  }
+}
