@@ -1,0 +1,23 @@
+{
+  "name": "takodu-architecture",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "C4 architecture model for the Takodu Platform (Agentic SaaS for MYPE appointment scheduling in Lima Metropolitana).",
+  "scripts": {
+    "build": "likec4 build -o ./dist",
+    "validate": "likec4 validate",
+    "format": "likec4 format",
+    "format:check": "likec4 format --check",
+    "export:json": "likec4 export json -o ./dist/json",
+    "export:png": "likec4 export png -o ./dist/png",
+    "gen:mermaid": "likec4 gen mermaid -o ./dist/mermaid"
+  },
+  "devDependencies": {
+    "likec4": "^1.0.0"
+  },
+  "engines": {
+    "bun": ">=1.1.0",
+    "node": ">=20"
+  }
+}

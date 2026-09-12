@@ -1,0 +1,15 @@
+model {
+
+  // === Containers > takodu > Cache ==========================================
+  // C4 level 2: in-memory cache for sessions, locks, and hot read paths.
+
+  extend takodu {
+    cache = cache 'Cache' {
+      #redis
+      description '
+        In-memory cache for sessions, locks, and hot read paths.
+      '
+      technology 'Redis 7'
+    }
+  }
+}

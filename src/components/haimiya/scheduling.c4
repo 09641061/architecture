@@ -1,0 +1,15 @@
+model {
+
+  // === Components > takodu.haimiya > Scheduling ==============================
+  // Appointment scheduling: availability, bookings, and lifecycle states.
+
+  extend takodu.haimiya {
+    scheduling = component 'Scheduling' {
+      description '
+        Appointment scheduling: availability, bookings,
+        and lifecycle states.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

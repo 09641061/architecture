@@ -1,0 +1,14 @@
+model {
+
+  // === Components > takodu.haimiya > Audit ===================================
+  // Appends audit events received from other contexts.
+
+  extend takodu.haimiya {
+    audit = component 'Audit' {
+      description '
+        Appends audit events received from other contexts.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

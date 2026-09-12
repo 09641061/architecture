@@ -1,0 +1,14 @@
+model {
+
+  // === Components > takodu.haimiya > Billing =================================
+  // Subscriptions, invoices, and Stripe payments.
+
+  extend takodu.haimiya {
+    billing = component 'Billing' {
+      description '
+        Subscriptions, invoices, and Stripe payments.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

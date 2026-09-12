@@ -1,0 +1,14 @@
+model {
+
+  // === Components > takodu.haimiya > Profiles ================================
+  // Owner and employee profile records.
+
+  extend takodu.haimiya {
+    profiles = component 'Profiles' {
+      description '
+        Owner and employee profile records.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

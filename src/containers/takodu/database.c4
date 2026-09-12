@@ -1,0 +1,16 @@
+model {
+
+  // === Containers > takodu > Database =======================================
+  // C4 level 2: primary relational store.
+
+  extend takodu {
+    db = database 'Database' {
+      #postgresql
+      description '
+        Relational store for users, businesses, services, staff,
+        appointments, and bookings.
+      '
+      technology 'PostgreSQL 16'
+    }
+  }
+}

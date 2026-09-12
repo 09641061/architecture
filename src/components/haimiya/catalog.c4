@@ -1,0 +1,15 @@
+model {
+
+  // === Components > takodu.haimiya > Catalog =================================
+  // Services catalog: offerings, durations, and pricing.
+
+  extend takodu.haimiya {
+    catalog = component 'Catalog' {
+      description '
+        Services catalog: offerings, durations,
+        and pricing.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

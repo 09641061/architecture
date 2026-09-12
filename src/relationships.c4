@@ -1,0 +1,176 @@
+model {
+
+  // === Relationships ========================================================
+  // Cross-layer relationships. Direction: `from -> to 'description' [tech]`.
+
+  // ---- People -> container -------------------------------------------------
+  owner -> takodu.gremory 'Manages subscription, services, staff, and occupation reports'
+  employer -> takodu.gremory 'Checks the daily agenda and receives reschedule alerts'
+
+  // ---- Frontend -> backend -------------------------------------------------
+  takodu.gremory -> takodu.haimiya 'Calls business endpoints over HTTPS' {
+    technology 'HTTPS/REST'
+  }
+
+  // ---- Component -> Cache (Redis) ------------------------------------------
+  // Redis users: iam (sessions/tokens), assistant (@Cacheable on ACL facades),
+  // workforce (invitation tokens).
+  takodu.haimiya.iam -> takodu.cache 'Stores sessions, tokens, and rate-limit counters' {
+    technology 'RESP/Redis'
+  }
+  takodu.haimiya.assistant -> takodu.cache 'Caches availability, appointments, and services' {
+    technology 'RESP/Redis'
+  }
+  takodu.haimiya.workforce -> takodu.cache 'Indexes invitation tokens' {
+    technology 'RESP/Redis'
+  }
+
+  // ---- Component -> Database (PostgreSQL) ----------------------------------
+  // 12 of 13 contexts use PostgreSQL; `media` has no own schema
+  // (delegates everything to Openinary).
+  takodu.haimiya.iam -> takodu.db 'Reads and writes users, roles, and sessions' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.assistant -> takodu.db 'Persists conversation history and resolved intents' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.scheduling -> takodu.db 'Reads and writes appointments and availability' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.workforce -> takodu.db 'Reads and writes staff, roles, and permissions' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.business -> takodu.db 'Reads and writes organizations and establishments' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.catalog -> takodu.db 'Reads and writes services and pricing' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.crm -> takodu.db 'Reads and writes customers' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.profiles -> takodu.db 'Reads and writes owner and employee profiles' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.billing -> takodu.db 'Reads and writes subscriptions and invoices' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.notifications -> takodu.db 'Reads and writes notification templates and logs' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.audit -> takodu.db 'Appends audit events' {
+    technology 'JDBC/PostgreSQL'
+  }
+  takodu.haimiya.analytics -> takodu.db 'Reads operational data via dedicated read repositories' {
+    technology 'JDBC/PostgreSQL'
+  }
+
+  // ---- Cross-context ACL (Anti-Corruption Layer) ---------------------------
+  // Derived from each context's
+  // `import com.takodu.<other>.interfaces.acl` / `application.acl`.
+  takodu.haimiya.iam -> takodu.haimiya.notifications 'Sends auth-related notifications via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.assistant -> takodu.haimiya.business 'Resolves tenant and establishment data via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.assistant -> takodu.haimiya.catalog 'Resolves service catalog data via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.assistant -> takodu.haimiya.crm 'Resolves customer identity and records via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.assistant -> takodu.haimiya.scheduling 'Resolves availability and appointment data via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.assistant -> takodu.haimiya.workforce 'Resolves staff and permission data via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.analytics -> takodu.haimiya.billing 'Gates plan access via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.audit -> takodu.haimiya.business 'Resolves tenant context for audit records via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.audit -> takodu.haimiya.workforce 'Resolves staff context for audit records via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.billing -> takodu.haimiya.business 'Resolves tenant and establishment data via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.billing -> takodu.haimiya.iam 'Resolves user identity and roles via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.business -> takodu.haimiya.billing 'Resolves plan limits and subscription status via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.business -> takodu.haimiya.iam 'Resolves user identity and roles via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.business -> takodu.haimiya.media 'Resolves media asset references via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.business -> takodu.haimiya.workforce 'Resolves staff and permission data via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.catalog -> takodu.haimiya.workforce 'Resolves staff permissions via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.crm -> takodu.haimiya.business 'Resolves tenant and establishment data via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.crm -> takodu.haimiya.workforce 'Resolves staff data via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.notifications -> takodu.haimiya.iam 'Resolves user contact info via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.notifications -> takodu.haimiya.workforce 'Resolves staff data via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.profiles -> takodu.haimiya.media 'Resolves media asset references via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.scheduling -> takodu.haimiya.workforce 'Resolves staff availability via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.workforce -> takodu.haimiya.billing 'Resolves plan limits via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.workforce -> takodu.haimiya.business 'Resolves tenant data via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.workforce -> takodu.haimiya.iam 'Resolves user identity and roles via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.workforce -> takodu.haimiya.notifications 'Resolves notification preferences via ACL' {
+    technology 'ACL'
+  }
+  takodu.haimiya.workforce -> takodu.haimiya.profiles 'Resolves profile data via ACL' {
+    technology 'ACL'
+  }
+
+  // ---- Component -> External system ---------------------------------------
+  // Verified against actual outbound HTTP clients / SDKs.
+  takodu.haimiya.iam -> google 'Exchanges authorization codes for Google OAuth tokens' {
+    technology 'HTTPS/OAuth 2'
+  }
+  takodu.haimiya.assistant -> deepseek 'Sends chat completion requests to the LLM' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya.billing -> stripe 'Creates checkout sessions and processes subscription charges' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya.crm -> decoleta 'Looks up customer identity by document number' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya.media -> openinary 'Uploads and transforms media assets' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya.notifications -> ses 'Sends transactional email through Amazon SESv2' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya.notifications -> gorush 'Dispatches push notifications to employee devices' {
+    technology 'HTTPS/REST'
+  }
+}

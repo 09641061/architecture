@@ -1,0 +1,16 @@
+model {
+
+  // === Containers > takodu > Gremory ========================================
+  // C4 level 2: browser-based web app.
+
+  extend takodu {
+    gremory = webapp 'Gremory' {
+      #nextjs
+      description '
+        Browser-based app for MYPE owners and employees
+        to manage services, staff, and the daily agenda.
+      '
+      technology 'Next.js 16, TypeScript'
+    }
+  }
+}

@@ -1,0 +1,69 @@
+model {
+
+  // === External systems =====================================================
+  // C4 level 1: third-party software systems the Takodu Platform
+  // integrates with. Tagged so they can be styled / filtered as a group.
+
+  deepseek = system 'DeepSeek Platform' {
+    #external, #ai
+    description '
+      LLM provider powering the RAG-based
+      conversational booking agent.
+    '
+    technology 'DeepSeek'
+  }
+
+  decoleta = system 'Decoleta API' {
+    #external, #api
+    description '
+      Third-party API consumed to enrich
+      MYPE operations data.
+    '
+    technology 'Decoleta'
+  }
+
+  openinary = system 'Openinary' {
+    #external, #api
+    description '
+      Media service used to process and optimize
+      assets uploaded by MYPEs.
+    '
+    technology 'Openinary'
+  }
+
+  ses = system 'Amazon SES' {
+    #external, #email
+    description '
+      Transactional email service for confirmations,
+      reminders, and notifications.
+    '
+    technology 'Amazon SES'
+  }
+
+  gorush = system 'Gorush' {
+    #external, #push
+    description '
+      Push notification gateway for real-time
+      schedule alerts to employee devices.
+    '
+    technology 'Gorush'
+  }
+
+  google = system 'Google OAuth 2' {
+    #external, #identity
+    description '
+      Identity provider for MYPE owners and employees
+      to sign in with Google accounts.
+    '
+    technology 'Google OAuth 2'
+  }
+
+  stripe = system 'Stripe' {
+    #external, #payment
+    description '
+      Payment platform for MYPE subscription billing
+      and one-off charges.
+    '
+    technology 'Stripe'
+  }
+}

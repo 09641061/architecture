@@ -1,0 +1,15 @@
+model {
+
+  // === Components > takodu.haimiya > IAM =====================================
+  // Identity, authentication, and session management.
+
+  extend takodu.haimiya {
+    iam = component 'IAM' {
+      description '
+        Identity, authentication, and session management.
+        Supports Google OAuth and email sign-in.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}
