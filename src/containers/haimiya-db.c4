@@ -1,0 +1,20 @@
+model {
+
+  // === Containers > takodu > Haimiya PostgreSQL =============================
+  // C4 level 2: primary relational store owned by Haimiya. Gorush has its
+  // own separate PostgreSQL instance (see gorush-db.c4), so this database
+  // is exclusively the Haimiya one.
+
+  extend takodu {
+    haimiyaDb = database 'Haimiya PostgreSQL' {
+      #postgresql
+      description '
+        Relational store owned by Haimiya for users,
+        businesses, services, staff, appointments,
+        and bookings. Distinct from Gorush PostgreSQL.
+      '
+      technology 'PostgreSQL 16'
+      icon: https://icons.d2lang.com/dev%2Fpostgresql.svg
+    }
+  }
+}

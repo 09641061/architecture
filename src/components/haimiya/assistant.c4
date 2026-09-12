@@ -1,0 +1,15 @@
+model {
+
+  // === Components > takodu.haimiya > Assistant ===============================
+  // Conversational booking agent backed by DeepSeek.
+
+  extend takodu.haimiya {
+    assistant = component 'Assistant' {
+      description '
+        Conversational booking agent backed by DeepSeek.
+        Caches availability, appointments, and services.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

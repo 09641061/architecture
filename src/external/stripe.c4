@@ -1,0 +1,19 @@
+model {
+
+  // === External: Stripe =====================================================
+  // Payment platform for MYPE subscription billing and one-off charges.
+
+  stripe = system 'Stripe' {
+    #external, #payment
+    description '
+      Payment platform for MYPE subscription billing
+      and one-off charges.
+    '
+    technology 'Stripe'
+    style {
+      color: indigo
+      border: dashed
+      icon ../../icons/stripe.svg
+    }
+  }
+}

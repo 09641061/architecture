@@ -1,0 +1,48 @@
+views {
+
+  // === Components: Haimiya =================================================
+  // C4 level 3: 13 components inside the Haimiya REST API together with the
+  // data stores and external systems those components depend on.
+  //
+  // Includes:
+  //   - All 13 bounded contexts inside Haimiya (`takodu.haimiya.*`)
+  //   - Haimiya PostgreSQL (`takodu.haimiyaDb`) — read/written by 12 components
+  //   - Redis              (`takodu.cache`)    — used by iam, assistant, workforce
+  //   - Internal containers reached by Haimiya components:
+  //       takodu.openinary (media processing)
+  //       takodu.garage    (S3-compatible object store used by Openinary)
+  //       takodu.gorush    (push notification gateway used by notifications)
+  //   - Gorush PostgreSQL (`takodu.gorushDb`) — owned by Gorush, not by Haimiya,
+  //     but shown for completeness because Gorush sits in the dependency chain.
+  //   - External systems reached by Haimiya components:
+  //       deepseek, google, stripe, decoleta, ses
+  //
+  // The view does not include people / actors (those belong to landscape).
+
+  view haimiyaComponents of takodu.haimiya {
+    title 'Haimiya API — Components with dependencies'
+    description '
+      The 13 bounded contexts inside Haimiya, plus the
+      Haimiya PostgreSQL / Redis stores they read and
+      write, the in-platform Openinary media service
+      backed by the Garage S3-compatible bucket, the
+      in-platform Gorush push notification gateway
+      (with its own PostgreSQL), and the external
+      systems they integrate with (LLM, OAuth, payments,
+      identity lookup, email).
+    '
+    group 'Haimiya API' {
+      include takodu.haimiya.*
+    }
+    style takodu.haimiya.* {
+      color primary
+    }
+    group 'Internal Containers' {
+      include takodu.haimiyaDb, takodu.cache, takodu.openinary, takodu.garage, takodu.gorush, takodu.gorushDb
+    }
+    group 'External Services' {
+      include deepseek, google, stripe, decoleta, ses
+    }
+    autoLayout LeftRight 0 0
+  }
+}

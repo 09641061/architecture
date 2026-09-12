@@ -1,0 +1,15 @@
+model {
+
+  // === Components > takodu.haimiya > Workforce ===============================
+  // Staff, roles, permissions, and Redis-backed invitation tokens.
+
+  extend takodu.haimiya {
+    workforce = component 'Workforce' {
+      description '
+        Staff, roles, permissions,
+        and Redis-backed invitation tokens.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

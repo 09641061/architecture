@@ -1,0 +1,19 @@
+model {
+
+  // === External: Google OAuth 2 =============================================
+  // Identity provider for MYPE owners and employees to sign in with Google.
+
+  google = system 'Google OAuth 2' {
+    #external, #identity
+    description '
+      Identity provider for MYPE owners and employees
+      to sign in with Google accounts.
+    '
+    technology 'Google OAuth 2'
+    style {
+      color: indigo
+      border: dashed
+      icon: tech:google-cloud
+    }
+  }
+}

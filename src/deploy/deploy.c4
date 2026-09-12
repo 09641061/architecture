@@ -1,0 +1,75 @@
+views {
+
+  // === Deploy =============================================================
+  // C4 deployment view (skeleton). Only includes what was explicitly
+  // requested:
+  //   - The two MYPE users (owner, employer) reach the platform through
+  //     the deployment boundary.
+  //   - The Deploy group is the outermost deployment boundary.
+  //   - Inside it, two top-level hosting tiers are declared:
+  //       * vercel cloud          — hosts the Gremory webapp.
+  //       * dokploy takodu cloud  — manages the self-hosted NixOS
+  //                                  servers (azusa nixos server and
+  //                                  kota nixos server) that run the
+  //                                  backend stack.
+  //   - Inside dokploy takodu cloud, two NixOS server nodes are declared:
+  //       * azusa nixos server — hosts the Haimiya REST API, its
+  //                              dedicated PostgreSQL instance, and
+  //                              the Redis cache.
+  //       * kota nixos server  — hosts Gorush (+ its PostgreSQL),
+  //                              Openinary, and Garage (S3-compatible
+  //                              object store).
+
+  view deploy of takodu {
+    title 'Takodu Platform — Deploy'
+    description '
+      Deployment view skeleton. Both MYPE users reach
+      the platform through the deployment boundary.
+      Two hosting tiers are declared: vercel cloud
+      hosts the Gremory frontend, and dokploy takodu
+      cloud manages the two self-hosted NixOS servers
+      (azusa nixos server for the Haimiya core
+      business stack, and kota nixos server for
+      the media + push stack).
+    '
+
+    // Actors sit outside the Deploy boundary.
+    include owner, employer
+
+    // Outermost deployment boundary. Everything Takodu runs lives
+    // inside this group.
+    group 'Deploy' {
+
+      // First hosting tier: vercel cloud, which hosts Gremory.
+      group 'vercel cloud' {
+        color: gray
+        include takodu.gremory
+      }
+
+      // Second hosting tier: dokploy takodu cloud, the self-hosted
+      // container manager that orchestrates the two NixOS servers.
+      group 'dokploy takodu cloud' {
+        color: indigo
+
+        // The Dokploy container itself — the self-hosted PaaS that
+        // owns the lifecycle of every container running on the
+        // NixOS servers below.
+        include takodu.dokploy
+
+        // First NixOS server: azusa, the core business node.
+        group 'azusa nixos server' {
+          color: secondary
+          include takodu.haimiya, takodu.haimiyaDb, takodu.cache
+        }
+
+        // Second NixOS server: kota, the media + push node.
+        group 'kota nixos server' {
+          color: muted
+          include takodu.gorush, takodu.gorushDb, takodu.openinary, takodu.garage
+        }
+      }
+    }
+
+    autoLayout TopBottom
+  }
+}

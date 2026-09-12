@@ -1,0 +1,16 @@
+model {
+
+  // === Components > takodu.haimiya > Analytics ===============================
+  // Reports and KPIs. Gates plan access through billing ACL.
+
+  extend takodu.haimiya {
+    analytics = component 'Analytics' {
+      description '
+        Reports and KPIs. Reads operational data via
+        dedicated read repositories and gates plan access
+        through billing ACL.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

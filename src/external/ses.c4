@@ -1,0 +1,19 @@
+model {
+
+  // === External: Amazon SES =================================================
+  // Transactional email service for confirmations, reminders, and notifications.
+
+  ses = system 'Amazon SES' {
+    #external, #email
+    description '
+      Transactional email service for confirmations,
+      reminders, and notifications.
+    '
+    technology 'Amazon SES'
+    style {
+      color: red
+      border: dashed
+      icon: aws:simple-email-service
+    }
+  }
+}

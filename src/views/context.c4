@@ -1,0 +1,19 @@
+views {
+
+  // === Context (System Context) ===========================================
+  // C4 level 1: Takodu + actors + adjacent external systems.
+  // Takodu is shown collapsed (single box); no internal detail leaks in.
+
+  view context of takodu {
+    title 'Takodu Platform — Context'
+    description '
+      Who uses the platform and which external systems
+      it integrates with. Takodu is intentionally shown
+      as a single box.
+    '
+    include takodu
+    include owner, employer
+    include deepseek, decoleta, ses, google, stripe
+    autoLayout LeftRight
+  }
+}
