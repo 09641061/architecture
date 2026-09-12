@@ -13,7 +13,7 @@ views {
     '
     include takodu
     include owner, employer
-    include deepseek, decoleta, openinary, ses, gorush, google, stripe
+    include deepseek, decoleta, ses, google, stripe
     autoLayout LeftRight
   }
 }

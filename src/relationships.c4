@@ -164,13 +164,51 @@ model {
   takodu.haimiya.crm -> decoleta 'Looks up customer identity by document number' {
     technology 'HTTPS/REST'
   }
-  takodu.haimiya.media -> openinary 'Uploads and transforms media assets' {
+  takodu.haimiya.media -> takodu.openinary 'Uploads and transforms media assets' {
     technology 'HTTPS/REST'
   }
   takodu.haimiya.notifications -> ses 'Sends transactional email through Amazon SESv2' {
     technology 'HTTPS/REST'
   }
-  takodu.haimiya.notifications -> gorush 'Dispatches push notifications to employee devices' {
+  takodu.haimiya.notifications -> takodu.gorush 'Dispatches push notifications to employee devices' {
     technology 'HTTPS/REST'
+  }
+
+  // ---- Container -> External system ---------------------------------------
+  // Aggregated view of every external integration owned by the Haimiya
+  // REST API. Mirrors the component-level relationships above so the
+  // containers view (C4 level 2) can show the full external surface of
+  // Haimiya without leaking component internals.
+  takodu.haimiya -> google 'Authenticates MYPE users and employees through Google OAuth 2' {
+    technology 'HTTPS/OAuth 2'
+  }
+  takodu.haimiya -> deepseek 'Calls the LLM that powers the conversational booking agent' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya -> stripe 'Manages MYPE subscription billing and one-off charges' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya -> decoleta 'Enriches customer identity records from external registries' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya -> ses 'Sends transactional email through Amazon SES' {
+    technology 'HTTPS/REST'
+  }
+  takodu.gremory -> takodu.gorush 'Registers the service worker and subscribes employee browsers to push notifications' {
+    technology 'HTTPS/REST'
+  }
+  takodu.gremory -> stripe 'Tokenizes payment methods in the browser through Stripe.js' {
+    technology 'HTTPS/REST'
+  }
+  takodu.gremory -> google 'Signs MYPE users in via Google Identity Services in the browser' {
+    technology 'HTTPS/OAuth 2'
+  }
+
+  // ---- Container -> Internal container -------------------------------------
+  // Container-to-container relationships inside the Takodu boundary that
+  // are not derived from any component-level edge. Openinary stores
+  // originals and processed derivatives in the S3-compatible Garage bucket.
+  takodu.openinary -> takodu.garage 'Persists media assets and derivatives in the S3-compatible bucket' {
+    technology 'HTTPS/S3'
   }
 }

@@ -8,8 +8,12 @@ views {
   //   - All 13 bounded contexts inside Haimiya (`takodu.haimiya.*`)
   //   - PostgreSQL (`takodu.db`)        — read/written by 12 components
   //   - Redis      (`takodu.cache`)     — used by iam, assistant, workforce
+  //   - Internal containers reached by Haimiya components:
+  //       takodu.openinary (media processing)
+  //       takodu.garage    (S3-compatible object store used by Openinary)
+  //       takodu.gorush    (push notification gateway used by notifications)
   //   - External systems reached by Haimiya components:
-  //       deepseek, google, stripe, decoleta, openinary, ses, gorush
+  //       deepseek, google, stripe, decoleta, ses
   //
   // The view does not include people / actors (those belong to landscape).
 
@@ -18,13 +22,15 @@ views {
     description '
       The 13 bounded contexts inside Haimiya, plus the
       PostgreSQL / Redis stores they read and write,
-      and the external systems they integrate with
-      (LLM, OAuth, payments, identity lookup, media,
-      email, push).
+      the in-platform Openinary media service backed by
+      the Garage S3-compatible bucket, the in-platform
+      Gorush push notification gateway, and the external
+      systems they integrate with (LLM, OAuth, payments,
+      identity lookup, email).
     '
     include takodu.haimiya.*
-    include takodu.db, takodu.cache
-    include deepseek, google, stripe, decoleta, openinary, ses, gorush
+    include takodu.db, takodu.cache, takodu.openinary, takodu.garage, takodu.gorush
+    include deepseek, google, stripe, decoleta, ses
     autoLayout LeftRight
   }
 }

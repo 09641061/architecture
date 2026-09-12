@@ -46,6 +46,13 @@ specification {
     }
   }
 
+  element storage {
+    style {
+      shape: cylinder
+      color: amber
+    }
+  }
+
   element component {
     style {
       shape: rectangle
@@ -73,4 +80,5 @@ specification {
   tag spring
   tag postgresql
   tag redis
+  tag storage
 }
