@@ -6,12 +6,14 @@ views {
   //
   // Includes:
   //   - All 13 bounded contexts inside Haimiya (`takodu.haimiya.*`)
-  //   - PostgreSQL (`takodu.db`)        — read/written by 12 components
-  //   - Redis      (`takodu.cache`)     — used by iam, assistant, workforce
+  //   - Haimiya PostgreSQL (`takodu.haimiyaDb`) — read/written by 12 components
+  //   - Redis              (`takodu.cache`)    — used by iam, assistant, workforce
   //   - Internal containers reached by Haimiya components:
   //       takodu.openinary (media processing)
   //       takodu.garage    (S3-compatible object store used by Openinary)
   //       takodu.gorush    (push notification gateway used by notifications)
+  //   - Gorush PostgreSQL (`takodu.gorushDb`) — owned by Gorush, not by Haimiya,
+  //     but shown for completeness because Gorush sits in the dependency chain.
   //   - External systems reached by Haimiya components:
   //       deepseek, google, stripe, decoleta, ses
   //
@@ -21,15 +23,16 @@ views {
     title 'Haimiya API — Components with dependencies'
     description '
       The 13 bounded contexts inside Haimiya, plus the
-      PostgreSQL / Redis stores they read and write,
-      the in-platform Openinary media service backed by
-      the Garage S3-compatible bucket, the in-platform
-      Gorush push notification gateway, and the external
+      Haimiya PostgreSQL / Redis stores they read and
+      write, the in-platform Openinary media service
+      backed by the Garage S3-compatible bucket, the
+      in-platform Gorush push notification gateway
+      (with its own PostgreSQL), and the external
       systems they integrate with (LLM, OAuth, payments,
       identity lookup, email).
     '
     include takodu.haimiya.*
-    include takodu.db, takodu.cache, takodu.openinary, takodu.garage, takodu.gorush
+    include takodu.haimiyaDb, takodu.cache, takodu.openinary, takodu.garage, takodu.gorush, takodu.gorushDb
     include deepseek, google, stripe, decoleta, ses
     autoLayout LeftRight
   }

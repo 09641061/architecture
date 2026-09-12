@@ -1,0 +1,22 @@
+model {
+
+  // === Containers > takodu > Gorush PostgreSQL =============================
+  // C4 level 2: relational store that Gorush uses internally to persist
+  // notification queue state, device subscriptions, and delivery logs.
+  // Owned and deployed alongside Gorush; separate from the Haimiya
+  // PostgreSQL instance (see postgresql.c4).
+
+  extend takodu {
+    gorushDb = database 'Gorush PostgreSQL' {
+      #postgresql
+      description '
+        Relational store owned by Gorush for push
+        queue state, device subscriptions, and
+        delivery logs. Separate from Haimiya
+        PostgreSQL.
+      '
+      technology 'PostgreSQL 16'
+      icon: https://icons.d2lang.com/dev%2Fpostgresql.svg
+    }
+  }
+}

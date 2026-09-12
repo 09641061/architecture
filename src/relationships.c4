@@ -25,43 +25,44 @@ model {
     technology 'RESP/Redis'
   }
 
-  // ---- Component -> Database (PostgreSQL) ----------------------------------
-  // 12 of 13 contexts use PostgreSQL; `media` has no own schema
-  // (delegates everything to Openinary).
-  takodu.haimiya.iam -> takodu.db 'Reads and writes users, roles, and sessions' {
+  // ---- Component -> Database (Haimiya PostgreSQL) --------------------------
+  // 12 of 13 contexts use the Haimiya PostgreSQL; `media` has no own schema
+  // (delegates everything to Openinary). Gorush has its own PostgreSQL
+  // (`takodu.gorushDb`) declared as a separate container below.
+  takodu.haimiya.iam -> takodu.haimiyaDb 'Reads and writes users, roles, and sessions' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.assistant -> takodu.db 'Persists conversation history and resolved intents' {
+  takodu.haimiya.assistant -> takodu.haimiyaDb 'Persists conversation history and resolved intents' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.scheduling -> takodu.db 'Reads and writes appointments and availability' {
+  takodu.haimiya.scheduling -> takodu.haimiyaDb 'Reads and writes appointments and availability' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.workforce -> takodu.db 'Reads and writes staff, roles, and permissions' {
+  takodu.haimiya.workforce -> takodu.haimiyaDb 'Reads and writes staff, roles, and permissions' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.business -> takodu.db 'Reads and writes organizations and establishments' {
+  takodu.haimiya.business -> takodu.haimiyaDb 'Reads and writes organizations and establishments' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.catalog -> takodu.db 'Reads and writes services and pricing' {
+  takodu.haimiya.catalog -> takodu.haimiyaDb 'Reads and writes services and pricing' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.crm -> takodu.db 'Reads and writes customers' {
+  takodu.haimiya.crm -> takodu.haimiyaDb 'Reads and writes customers' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.profiles -> takodu.db 'Reads and writes owner and employee profiles' {
+  takodu.haimiya.profiles -> takodu.haimiyaDb 'Reads and writes owner and employee profiles' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.billing -> takodu.db 'Reads and writes subscriptions and invoices' {
+  takodu.haimiya.billing -> takodu.haimiyaDb 'Reads and writes subscriptions and invoices' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.notifications -> takodu.db 'Reads and writes notification templates and logs' {
+  takodu.haimiya.notifications -> takodu.haimiyaDb 'Reads and writes notification templates and logs' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.audit -> takodu.db 'Appends audit events' {
+  takodu.haimiya.audit -> takodu.haimiyaDb 'Appends audit events' {
     technology 'JDBC/PostgreSQL'
   }
-  takodu.haimiya.analytics -> takodu.db 'Reads operational data via dedicated read repositories' {
+  takodu.haimiya.analytics -> takodu.haimiyaDb 'Reads operational data via dedicated read repositories' {
     technology 'JDBC/PostgreSQL'
   }
 
@@ -207,8 +208,13 @@ model {
   // ---- Container -> Internal container -------------------------------------
   // Container-to-container relationships inside the Takodu boundary that
   // are not derived from any component-level edge. Openinary stores
-  // originals and processed derivatives in the S3-compatible Garage bucket.
+  // originals and processed derivatives in the S3-compatible Garage bucket,
+  // and Gorush uses its own PostgreSQL instance to persist push queue
+  // state, device subscriptions, and delivery logs.
   takodu.openinary -> takodu.garage 'Persists media assets and derivatives in the S3-compatible bucket' {
     technology 'HTTPS/S3'
+  }
+  takodu.gorush -> takodu.gorushDb 'Persists push queue state, device subscriptions, and delivery logs' {
+    technology 'JDBC/PostgreSQL'
   }
 }
