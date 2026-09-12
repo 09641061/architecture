@@ -10,5 +10,9 @@ model {
       MYPE operations data.
     '
     technology 'Decoleta'
+    style {
+      color: amber
+      border: dashed
+    }
   }
 }

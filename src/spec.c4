@@ -1,46 +1,65 @@
 specification {
 
   // === C4 element kinds =====================================================
-  // C4 actors (people) and software systems
+  // Each kind declares a shape and a default color (LikeC4 uses named
+  // theme colors: primary, secondary, muted, amber, gray, green, indigo, red).
+
   element actor {
     style {
       shape: person
+      color: gray
     }
   }
-  element system
 
-  // C4 containers inside a software system
+  element system {
+    style {
+      shape: rectangle
+      color: primary
+    }
+  }
+
   element webapp {
     style {
       shape: browser
+      color: secondary
     }
   }
+
   element api {
     style {
       shape: rectangle
+      color: green
     }
   }
+
   element database {
     style {
       shape: cylinder
+      color: indigo
     }
   }
+
   element cache {
     style {
       shape: cylinder
+      color: red
     }
   }
 
-  // C4 components inside a container
   element component {
     style {
       shape: rectangle
+      color: muted
     }
   }
 
+  // === External system styling ==============================================
+  // All externals default to the `system` style above. Per-element overrides
+  // (color, icon, border) live inside each external/*.c4 file.
+
   // === Tags ================================================================
-  // Free-form tags that classify elements (external systems, technology,
-  // domain). Declared here so the parser resolves `#tag` references.
+  // Free-form tags. They classify elements (external, technology, domain)
+  // so the parser can resolve `#tag` references.
 
   tag external
   tag ai

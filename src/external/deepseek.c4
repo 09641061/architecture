@@ -10,5 +10,10 @@ model {
       conversational booking agent.
     '
     technology 'DeepSeek'
+    style {
+      color: muted
+      border: dashed
+      icon ../../icons/deepseek.svg
+    }
   }
 }

@@ -10,5 +10,10 @@ model {
       reminders, and notifications.
     '
     technology 'Amazon SES'
+    style {
+      color: red
+      border: dashed
+      icon: aws:simple-email-service
+    }
   }
 }

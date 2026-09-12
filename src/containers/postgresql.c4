@@ -11,6 +11,7 @@ model {
         appointments, and bookings.
       '
       technology 'PostgreSQL 16'
+      icon: https://icons.d2lang.com/dev%2Fpostgresql.svg
     }
   }
 }

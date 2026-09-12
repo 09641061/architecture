@@ -10,5 +10,10 @@ model {
       to sign in with Google accounts.
     '
     technology 'Google OAuth 2'
+    style {
+      color: indigo
+      border: dashed
+      icon: tech:google-cloud
+    }
   }
 }

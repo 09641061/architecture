@@ -10,6 +10,7 @@ model {
         In-memory cache for sessions, locks, and hot read paths.
       '
       technology 'Redis 7'
+      icon: https://icons.d2lang.com/dev%2Fredis.svg
     }
   }
 }

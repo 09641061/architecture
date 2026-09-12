@@ -10,5 +10,10 @@ model {
       schedule alerts to employee devices.
     '
     technology 'Gorush'
+    style {
+      color: amber
+      border: dashed
+      icon ../../icons/gorush.svg
+    }
   }
 }

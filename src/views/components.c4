@@ -1,15 +1,30 @@
 views {
 
   // === Components: Haimiya =================================================
-  // C4 level 3: 13 components inside the Haimiya REST API.
-  // No actors, no external systems — only the internals of Haimiya.
+  // C4 level 3: 13 components inside the Haimiya REST API together with the
+  // data stores and external systems those components depend on.
+  //
+  // Includes:
+  //   - All 13 bounded contexts inside Haimiya (`takodu.haimiya.*`)
+  //   - PostgreSQL (`takodu.db`)        — read/written by 12 components
+  //   - Redis      (`takodu.cache`)     — used by iam, assistant, workforce
+  //   - External systems reached by Haimiya components:
+  //       deepseek, google, stripe, decoleta, openinary, ses, gorush
+  //
+  // The view does not include people / actors (those belong to landscape).
 
   view haimiyaComponents of takodu.haimiya {
-    title 'Haimiya API — Components'
+    title 'Haimiya API — Components with dependencies'
     description '
-      Bounded contexts inside the Haimiya REST API.
+      The 13 bounded contexts inside Haimiya, plus the
+      PostgreSQL / Redis stores they read and write,
+      and the external systems they integrate with
+      (LLM, OAuth, payments, identity lookup, media,
+      email, push).
     '
     include takodu.haimiya.*
+    include takodu.db, takodu.cache
+    include deepseek, google, stripe, decoleta, openinary, ses, gorush
     autoLayout LeftRight
   }
 }

@@ -12,6 +12,7 @@ model {
         providers, and orchestrates persistence.
       '
       technology 'Java 25, Spring Boot 3'
+      icon: ../../icons/spring.svg
     }
   }
 }

@@ -11,6 +11,7 @@ model {
         to manage services, staff, and the daily agenda.
       '
       technology 'Next.js 16, TypeScript'
+      icon: ../../icons/nextjs.svg
     }
   }
 }

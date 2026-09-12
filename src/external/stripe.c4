@@ -10,5 +10,10 @@ model {
       and one-off charges.
     '
     technology 'Stripe'
+    style {
+      color: indigo
+      border: dashed
+      icon ../../icons/stripe.svg
+    }
   }
 }
