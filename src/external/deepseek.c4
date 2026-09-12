@@ -1,0 +1,19 @@
+model {
+
+  // === External: DeepSeek Platform ==========================================
+  // LLM provider powering the RAG-based conversational booking agent.
+
+  deepseek = system 'DeepSeek Platform' {
+    #external, #ai
+    description '
+      LLM provider powering the RAG-based
+      conversational booking agent.
+    '
+    technology 'DeepSeek'
+    style {
+      color: muted
+      border: dashed
+      icon ../../icons/deepseek.svg
+    }
+  }
+}

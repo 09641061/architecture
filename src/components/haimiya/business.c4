@@ -1,0 +1,15 @@
+model {
+
+  // === Components > takodu.haimiya > Business ================================
+  // MYPE tenant management: organizations and establishments.
+
+  extend takodu.haimiya {
+    business = component 'Business' {
+      description '
+        MYPE tenant management: organizations
+        and establishments.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

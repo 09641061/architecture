@@ -1,0 +1,21 @@
+model {
+
+  // === Containers > takodu > Gorush =========================================
+  // C4 level 2: in-platform push notification gateway for real-time schedule
+  // alerts to employee devices. Owned and deployed by Takodu, so it lives
+  // inside the platform boundary rather than as an external system.
+  // Gremory registers the browser service worker against it directly,
+  // and Haimiya (notifications context) dispatches pushes through it.
+
+  extend takodu {
+    gorush = api 'Gorush' {
+      #push
+      description '
+        Push notification gateway for real-time
+        schedule alerts to employee devices.
+      '
+      technology 'Gorush'
+      icon: ../../icons/gorush.svg
+    }
+  }
+}

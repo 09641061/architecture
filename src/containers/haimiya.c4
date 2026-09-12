@@ -1,0 +1,18 @@
+model {
+
+  // === Containers > takodu > Haimiya =========================================
+  // C4 level 2: REST API. Components are declared in
+  // `src/components/haimiya/*.c4` via `extend takodu.haimiya`.
+
+  extend takodu {
+    haimiya = api 'Haimiya' {
+      #spring
+      description '
+        REST API that handles business logic, integrates external
+        providers, and orchestrates persistence.
+      '
+      technology 'Java 25, Spring Boot 3'
+      icon: ../../icons/spring.svg
+    }
+  }
+}

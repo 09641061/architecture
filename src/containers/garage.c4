@@ -1,0 +1,20 @@
+model {
+
+  // === Containers > takodu > Garage =========================================
+  // C4 level 2: S3-compatible object store used by Openinary to persist
+  // processed media assets (originals + derivatives). Owned and deployed
+  // by Takodu, so it lives inside the platform boundary.
+
+  extend takodu {
+    garage = storage 'Garage' {
+      #storage
+      description '
+        S3-compatible object store that persists
+        media assets uploaded by MYPEs and the
+        derivatives produced by Openinary.
+      '
+      technology 'S3-compatible'
+      icon: ../../icons/garage.svg
+    }
+  }
+}

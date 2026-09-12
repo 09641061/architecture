@@ -1,1 +1,19 @@
+# Bun
+node_modules/
+bun.lockb
+
+# LikeC4 build output
 dist/
+.likec4/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Logs
+*.log
+npm-debug.log*
+bun-debug.log*

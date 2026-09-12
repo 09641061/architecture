@@ -1,0 +1,19 @@
+model {
+
+  // === Containers > takodu > Openinary ======================================
+  // C4 level 2: in-platform media processing service for assets uploaded by
+  // MYPEs. Owned and deployed by Takodu, so it lives inside the platform
+  // boundary rather than as an external system.
+
+  extend takodu {
+    openinary = api 'Openinary' {
+      #api
+      description '
+        Media service used to process and optimize
+        assets uploaded by MYPEs.
+      '
+      technology 'Openinary'
+      icon: ../../icons/openinary.svg
+    }
+  }
+}

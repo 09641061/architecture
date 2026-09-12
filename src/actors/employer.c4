@@ -1,0 +1,11 @@
+model {
+
+  // === Actor: MYPE Employee =================================================
+
+  employer = actor 'MYPE Employee' {
+    description '
+      Frontline MYPE worker (receptionist, stylist, therapist).
+      Checks the daily agenda and receives reschedule alerts.
+    '
+  }
+}

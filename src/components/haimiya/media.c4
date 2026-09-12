@@ -1,0 +1,16 @@
+model {
+
+  // === Components > takodu.haimiya > Media ===================================
+  // Media asset gateway that delegates processing to Openinary.
+  // No own database schema.
+
+  extend takodu.haimiya {
+    media = component 'Media' {
+      description '
+        Media asset gateway that delegates processing
+        to Openinary. No own database schema.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

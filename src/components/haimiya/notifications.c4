@@ -1,0 +1,14 @@
+model {
+
+  // === Components > takodu.haimiya > Notifications ===========================
+  // Email (SES) and push (Gorush) dispatcher.
+
+  extend takodu.haimiya {
+    notifications = component 'Notifications' {
+      description '
+        Email (SES) and push (Gorush) dispatcher.
+      '
+      technology 'Spring Boot, Java 25'
+    }
+  }
+}

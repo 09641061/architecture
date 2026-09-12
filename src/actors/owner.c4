@@ -1,0 +1,11 @@
+model {
+
+  // === Actor: MYPE Owner ====================================================
+
+  owner = actor 'MYPE Owner' {
+    description '
+      Owner or administrator of a MYPE business.
+      Manages services, staff, and occupation reports.
+    '
+  }
+}

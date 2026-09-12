@@ -1,0 +1,14 @@
+model {
+
+  // === Takodu Platform ======================================================
+  // C4 level 1: software system. Containers are declared in
+  // `src/containers/takodu/*.c4` via `extend takodu`.
+
+  takodu = system 'Takodu Platform' {
+    description '
+      Agentic SaaS that automates appointment scheduling for MYPEs
+      via a conversational AI agent, eliminating double-booking
+      and no-shows.
+    '
+  }
+}
