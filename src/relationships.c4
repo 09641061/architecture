@@ -8,7 +8,14 @@ model {
   employer -> takodu.gremory 'Checks the daily agenda and receives reschedule alerts'
 
   // ---- Frontend -> backend -------------------------------------------------
-  takodu.gremory -> takodu.haimiya 'Calls business endpoints over HTTPS' {
+  // The frontend never reaches Haimiya directly: every business API call
+  // from Gremory is sent over the public internet to the Traefik edge
+  // reverse proxy, which terminates TLS and routes the request to the
+  // Haimiya REST API inside the dokploy takodu cloud.
+  takodu.gremory -> takodu.traefik 'Sends business API calls through the edge reverse proxy' {
+    technology 'HTTPS'
+  }
+  takodu.traefik -> takodu.haimiya 'Terminates TLS and routes business API requests to the backend' {
     technology 'HTTPS/REST'
   }
 

@@ -60,6 +60,13 @@ specification {
     }
   }
 
+  element gateway {
+    style {
+      shape: rectangle
+      color: secondary
+    }
+  }
+
   // === External system styling ==============================================
   // All externals default to the `system` style above. Per-element overrides
   // (color, icon, border) live inside each external/*.c4 file.
@@ -81,4 +88,5 @@ specification {
   tag postgresql
   tag redis
   tag storage
+  tag traefik
 }

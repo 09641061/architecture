@@ -1,29 +1,48 @@
 views {
 
   // === Containers ==========================================================
-  // C4 level 2: Gremory, Haimiya, Openinary, Garage, Gorush, the two
-  // PostgreSQL instances (one for Haimiya, one for Gorush), and Redis are
-  // grouped inside the Takodu boundary. Openinary, Garage, and Gorush are
-  // owned and deployed by Takodu, so they are internal containers. Every
-  // external system that Haimiya integrates with is shown attached to the
-  // Haimiya container. Gremory also reaches Google OAuth 2 and Stripe
-  // directly from the browser. Actors remain outside because they use
-  // Gremory.
+  // C4 level 2: Gremory, Traefik, Haimiya, Openinary, Garage, Gorush, the
+  // two PostgreSQL instances (one for Haimiya, one for Gorush), and Redis
+  // are grouped inside the Takodu boundary. Openinary, Garage, and Gorush
+  // are owned and deployed by Takodu, so they are internal containers.
+  // Traefik is visually nested inside a `dokploy cloud` sub-boundary that
+  // mirrors the same grouping used in the deploy view, signalling that
+  // Traefik is the edge / control plane of the self-hosted PaaS layer.
+  // Every external system that Haimiya integrates with is shown attached
+  // to the Haimiya container. Gremory also reaches Google OAuth 2 and
+  // Stripe directly from the browser. Openinary persists media assets in
+  // Garage (S3-compatible object storage). Actors remain outside because
+  // they use Gremory.
 
   view containers of takodu {
     title 'Takodu Platform — Containers'
     description '
-      Gremory, Haimiya, Openinary, Garage, Gorush, Haimiya PostgreSQL,
-      Gorush PostgreSQL, and Redis inside the Takodu Platform boundary.
-      The two PostgreSQL instances are kept separate because Haimiya and
-      Gorush own disjoint data domains (business data vs push queue state).
-      Haimiya is shown attached to every external system it integrates
-      with (Google OAuth 2, DeepSeek, Stripe, Decoleta, Amazon SES).
-      Gremory also reaches Google OAuth 2 and Stripe directly from the
-      browser. Openinary persists media assets in Garage (S3-compatible
-      object storage). Actors remain outside the platform.
+      Gremory, Traefik, Haimiya, Openinary, Garage, Gorush, Haimiya
+      PostgreSQL, Gorush PostgreSQL, and Redis inside the Takodu Platform
+      boundary. The two PostgreSQL instances are kept separate because
+      Haimiya and Gorush own disjoint data domains (business data vs push
+      queue state). Traefik is drawn inside its own `dokploy cloud`
+      sub-group to mirror the deploy view, signalling that it is the edge
+      reverse proxy of the self-hosted infrastructure. Haimiya is shown
+      attached to every external system it integrates with (Google OAuth
+      2, DeepSeek, Stripe, Decoleta, Amazon SES). The frontend never
+      reaches Haimiya directly: Gremory sends every business API call to
+      Traefik, which terminates TLS and routes the request to Haimiya
+      inside the platform. Gremory also reaches Google OAuth 2 and Stripe
+      directly from the browser. Openinary persists media assets in
+      Garage (S3-compatible object storage). Actors remain outside the
+      platform.
     '
     group 'Takodu Platform' {
+      // Edge / control plane of the self-hosted PaaS layer. Mirrors the
+      // same sub-group used in the deploy view (`dokploy cloud` inside
+      // `dokploy takodu cloud`). Dokploy is intentionally not included
+      // here because the containers view models running services, not
+      // the deployment manager that orchestrates them.
+      group 'dokploy cloud' {
+        color: indigo
+        include takodu.traefik
+      }
       include takodu.gremory, takodu.haimiya, takodu.openinary, takodu.garage, takodu.gorush, takodu.haimiyaDb, takodu.gorushDb, takodu.cache
     }
     include owner, employer
