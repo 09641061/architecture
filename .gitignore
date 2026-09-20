@@ -17,3 +17,4 @@ dist/
 *.log
 npm-debug.log*
 bun-debug.log*
+docs/

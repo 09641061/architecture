@@ -5,13 +5,19 @@ views {
   // requested:
   //   - The two MYPE users (owner, employer) reach the platform through
   //     the deployment boundary.
+  //   - The External Services group sits outside the Deploy boundary,
+  //     alongside the actors, because the platform does not own the
+  //     infrastructure where those services run (DeepSeek LLM, Stripe,
+  //     Google OAuth, Decoleta identity lookup, Amazon SES).
   //   - The Deploy group is the outermost deployment boundary.
   //   - Inside it, two top-level hosting tiers are declared:
   //       * vercel cloud          — hosts the Gremory webapp.
   //       * dokploy takodu cloud  — manages the self-hosted NixOS
   //                                  servers (azusa nixos server and
   //                                  kota nixos server) that run the
-  //                                  backend stack.
+  //                                  backend stack, plus the Traefik
+  //                                  edge reverse proxy that fronts
+  //                                  Haimiya.
   //   - Inside dokploy takodu cloud, two NixOS server nodes are declared:
   //       * azusa nixos server — hosts the Haimiya REST API, its
   //                              dedicated PostgreSQL instance, and
@@ -30,11 +36,23 @@ views {
       cloud manages the two self-hosted NixOS servers
       (azusa nixos server for the Haimiya core
       business stack, and kota nixos server for
-      the media + push stack).
+      the media + push stack) plus the Dokploy PaaS
+      and the Traefik edge reverse proxy grouped
+      together as the dokploy cloud edge / control
+      plane. External Services (DeepSeek, Stripe,
+      Google OAuth, Decoleta, Amazon SES) sit
+      outside the Deploy boundary because the
+      platform does not own their infrastructure.
     '
 
     // Actors sit outside the Deploy boundary.
     include owner, employer
+
+    // External systems are not deployed by Takodu, so they sit
+    // outside the Deploy boundary alongside the actors.
+    group 'External Services' {
+      include deepseek, decoleta, ses, google, stripe
+    }
 
     // Outermost deployment boundary. Everything Takodu runs lives
     // inside this group.
@@ -51,10 +69,15 @@ views {
       group 'dokploy takodu cloud' {
         color: indigo
 
-        // The Dokploy container itself — the self-hosted PaaS that
-        // owns the lifecycle of every container running on the
-        // NixOS servers below.
-        include takodu.dokploy
+        // Dokploy + Traefik grouped together as the edge / control
+        // plane of the dokploy cloud: the self-hosted PaaS (Dokploy)
+        // owns the lifecycle of every container, while Traefik serves
+        // as the edge reverse proxy that fronts the backend.
+        group 'dokploy cloud' {
+          color: indigo
+          include takodu.dokploy
+          include takodu.traefik
+        }
 
         // First NixOS server: azusa, the core business node.
         group 'azusa nixos server' {
