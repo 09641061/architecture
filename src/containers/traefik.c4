@@ -1,0 +1,22 @@
+model {
+
+  // === Containers > takodu > Traefik ========================================
+  // C4 level 2: edge reverse proxy deployed alongside Dokploy on the
+  // self-hosted NixOS infrastructure. Terminates TLS and routes every
+  // inbound business API request from the Gremory frontend to the
+  // Haimiya REST API. Sits between the frontend (Vercel) and the
+  // backend (Haimiya) in the request path.
+
+  extend takodu {
+    traefik = gateway 'API Gateway' {
+      #traefik
+      description '
+        Edge reverse proxy that terminates HTTPS and
+        routes business API requests from the Gremory
+        frontend to the Haimiya REST API.
+      '
+      technology 'Traefik'
+      icon: ../../icons/traefik.svg
+    }
+  }
+}

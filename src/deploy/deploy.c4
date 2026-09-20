@@ -11,7 +11,9 @@ views {
   //       * dokploy takodu cloud  — manages the self-hosted NixOS
   //                                  servers (azusa nixos server and
   //                                  kota nixos server) that run the
-  //                                  backend stack.
+  //                                  backend stack, plus the Traefik
+  //                                  edge reverse proxy that fronts
+  //                                  Haimiya.
   //   - Inside dokploy takodu cloud, two NixOS server nodes are declared:
   //       * azusa nixos server — hosts the Haimiya REST API, its
   //                              dedicated PostgreSQL instance, and
@@ -30,7 +32,9 @@ views {
       cloud manages the two self-hosted NixOS servers
       (azusa nixos server for the Haimiya core
       business stack, and kota nixos server for
-      the media + push stack).
+      the media + push stack) plus the Traefik edge
+      reverse proxy that terminates TLS and routes
+      business API requests from Gremory to Haimiya.
     '
 
     // Actors sit outside the Deploy boundary.
@@ -55,6 +59,13 @@ views {
         // owns the lifecycle of every container running on the
         // NixOS servers below.
         include takodu.dokploy
+
+        // Edge reverse proxy — terminates TLS and routes every
+        // business API request from the Gremory frontend to the
+        // Haimiya REST API. Runs in the dokploy takodu cloud
+        // alongside Dokploy because it is a self-hosted container
+        // managed by the same orchestrator.
+        include takodu.traefik
 
         // First NixOS server: azusa, the core business node.
         group 'azusa nixos server' {
