@@ -1,0 +1,19 @@
+model {
+
+  // === Internal > Openinary ================================================
+  // Top-level: in-platform media processing service for assets uploaded by
+  // MYPEs. Self-hosted on the kota NixOS server, but conceptually a separate
+  // software system (not part of the Takodu domain boundary). Co-located
+  // here because it shares the same self-hosted infrastructure footprint
+  // as the other internal services and is not an external system.
+
+  openinary = api 'Openinary' {
+    #api
+    description '
+      Media service used to process and optimize
+      assets uploaded by MYPEs.
+    '
+    technology 'Openinary'
+    icon: ../../icons/openinary.svg
+  }
+}

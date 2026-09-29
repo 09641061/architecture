@@ -8,19 +8,22 @@ views {
   //   - All 13 bounded contexts inside Haimiya (`takodu.haimiya.*`)
   //   - Haimiya PostgreSQL (`takodu.haimiyaDb`) — read/written by 12 components
   //   - Redis              (`takodu.cache`)    — used by iam, assistant, workforce
-  //   - Internal containers reached by Haimiya components:
-  //       takodu.openinary (media processing)
-  //       takodu.garage    (S3-compatible object store used by Openinary)
-  //       takodu.gorush    (push notification gateway used by notifications)
-  //   - Gorush PostgreSQL (`takodu.gorushDb`) — owned by Gorush, not by Haimiya,
-  //     but shown for completeness because Gorush sits in the dependency chain.
+  //   - Internal co-located infrastructure reached by Haimiya components:
+  //       openinary     (media processing)
+  //       garage        (S3-compatible object store used by Openinary)
+  //       gorush        (push notification gateway used by notifications)
+  //   - Gorush PostgreSQL (`gorushDb`) — owned by Gorush, not by Haimiya,
+  //     but shown for completeness because Gorush sits in the dependency
+  //     chain. These four are top-level elements (not children of the
+  //     `takodu` system), so they are referenced by their unqualified
+  //     names.
   //   - External systems reached by Haimiya components:
-  //       deepseek, google, stripe, decoleta, ses
+  //       deepseek, google, googleCalendar, stripe, decoleta, ses, whatsapp
   //
-  // The view does not include people / actors (those belong to landscape).
+  // The view does not include people / actors (those belong to context and containers).
 
   view haimiyaComponents of takodu.haimiya {
-    title 'Haimiya API — Components with dependencies'
+    title 'Haimiya API — Components'
     description '
       The 13 bounded contexts inside Haimiya, plus the
       Haimiya PostgreSQL / Redis stores they read and
@@ -28,8 +31,9 @@ views {
       backed by the Garage S3-compatible bucket, the
       in-platform Gorush push notification gateway
       (with its own PostgreSQL), and the external
-      systems they integrate with (LLM, OAuth, payments,
-      identity lookup, email).
+      systems they integrate with (LLM, OAuth, calendar
+      sync, payments, identity lookup, email,
+      WhatsApp).
     '
     group 'Haimiya API' {
       include takodu.haimiya.*
@@ -37,11 +41,20 @@ views {
     style takodu.haimiya.* {
       color primary
     }
+    // Traefik is the edge reverse proxy that fronts every API call to
+    // Haimiya. Drawn inside its own `dokploy cloud` sub-group to mirror
+    // the same convention used in the containers and deploy views, so
+    // that it is visually anchored to the self-hosted PaaS layer rather
+    // than appearing as a sibling of the Haimiya data stores.
+    group 'dokploy cloud' {
+      color: indigo
+      include takodu.traefik
+    }
     group 'Internal Containers' {
-      include takodu.haimiyaDb, takodu.cache, takodu.openinary, takodu.garage, takodu.gorush, takodu.gorushDb
+      include takodu.haimiyaDb, takodu.cache, openinary, gorush
     }
     group 'External Services' {
-      include deepseek, google, stripe, decoleta, ses
+      include deepseek, google, googleCalendar, stripe, decoleta, ses, whatsapp
     }
     autoLayout LeftRight 0 0
   }
