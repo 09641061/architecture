@@ -17,10 +17,10 @@ views {
   //   - External systems reached by Haimiya components:
   //       deepseek, google, googleCalendar, stripe, decoleta, ses, whatsapp
   //
-  // The view does not include people / actors (those belong to landscape).
+  // The view does not include people / actors (those belong to context and containers).
 
   view haimiyaComponents of takodu.haimiya {
-    title 'Haimiya API — Components with dependencies'
+    title 'Haimiya API — Components'
     description '
       The 13 bounded contexts inside Haimiya, plus the
       Haimiya PostgreSQL / Redis stores they read and

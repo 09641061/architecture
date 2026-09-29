@@ -1,0 +1,19 @@
+views {
+
+  // This explicitly authored `index` replaces LikeC4's generated landing view.
+  // Here, Landscape means the internal service topology of Takodu; the
+  // System Context view remains the external, black-box perspective.
+  view index of takodu {
+    title 'Takodu Platform —  Landscape'
+    description '
+      Internal runtime services and their dependencies inside Takodu:
+      Gremory, Traefik, Haimiya, Openinary, Garage, Gorush, PostgreSQL,
+      and Redis. Actors and third-party systems are intentionally omitted;
+      see the Context and Containers views for those relationships.
+    '
+    group 'Internal Services' {
+      include takodu.gremory, takodu.traefik, takodu.haimiya, takodu.openinary, takodu.garage, takodu.gorush, takodu.haimiyaDb, takodu.gorushDb, takodu.cache
+    }
+    autoLayout LeftRight
+  }
+}
