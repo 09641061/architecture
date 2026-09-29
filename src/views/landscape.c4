@@ -1,18 +1,33 @@
 views {
 
   // This explicitly authored `index` replaces LikeC4's generated landing view.
-  // Here, Landscape means the internal service topology of Takodu; the
-  // System Context view remains the external, black-box perspective.
-  view index of takodu {
+  // Here, Landscape means the high-level view of the Takodu Platform
+  // alongside the co-located self-hosted infrastructure. It mirrors the
+  // Context view pattern: Takodu is shown as a single collapsed box with
+  // no container-level detail leaking in; the Garage, Openinary, Gorush,
+  // and Gorush PostgreSQL infrastructure components are kept as a
+  // sibling group called "internal" because they live at the top level
+  // of the model (not inside the `takodu` system). Actors and
+  // third-party systems are intentionally omitted; see the Context and
+  // Containers views for those relationships.
+  view index {
     title 'Takodu Platform —  Landscape'
     description '
-      Internal runtime services and their dependencies inside Takodu:
-      Gremory, Traefik, Haimiya, Openinary, Garage, Gorush, PostgreSQL,
-      and Redis. Actors and third-party systems are intentionally omitted;
-      see the Context and Containers views for those relationships.
+      High-level view: Takodu Platform as a single collapsed box,
+      with the three actors (MYPE Owner, MYPE Employee, end Consumer)
+      and the third-party systems it integrates with (DeepSeek,
+      Decoleta, Amazon SES, Google OAuth 2, Google Calendar, Stripe,
+      WhatsApp Business), alongside the co-located self-hosted
+      infrastructure (Garage, Openinary, Gorush, and Gorush
+      PostgreSQL) grouped as "internal". Container-level detail of
+      Takodu is intentionally omitted; see the Containers view for
+      the full breakdown of Takodu internals.
     '
-    group 'Internal Services' {
-      include takodu.gremory, takodu.traefik, takodu.haimiya, takodu.openinary, takodu.garage, takodu.gorush, takodu.haimiyaDb, takodu.gorushDb, takodu.cache
+    include takodu
+    include owner, employer, consumer
+    include deepseek, decoleta, ses, google, googleCalendar, stripe, whatsapp
+    group 'internal' {
+      include garage, openinary, gorush, gorushDb
     }
     autoLayout LeftRight
   }

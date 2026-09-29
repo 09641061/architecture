@@ -88,10 +88,13 @@ views {
           include takodu.haimiya, takodu.haimiyaDb, takodu.cache
         }
 
-        // Second NixOS server: kota, the media + push node.
+        // Second NixOS server: kota, the media + push node. Hosts the
+        // co-located self-hosted infrastructure (Gorush + its PostgreSQL,
+        // Openinary, Garage), which lives at the top level of the model
+        // (not inside the `takodu` system) but is still deployed here.
         group 'kota nixos server' {
           color: muted
-          include takodu.gorush, takodu.gorushDb, takodu.openinary, takodu.garage
+          include gorush, gorushDb, openinary, garage
         }
       }
     }
