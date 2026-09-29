@@ -25,7 +25,7 @@ views {
   // Garage (S3-compatible object storage). Actors remain outside because
   // they use Gremory.
 
-  view containers {
+  view containers of takodu {
     title 'Takodu Platform — Containers'
     description '
       Two top-level groups: "Takodu Platform" contains the Takodu domain
@@ -64,6 +64,10 @@ views {
         include takodu.traefik
       }
       include takodu.gremory, takodu.haimiya, takodu.haimiyaDb, takodu.cache
+      // Prevent LikeC4 from auto-nesting takodu's children under a
+      // synthetic `takodu` boundary (which would steal `takodu.traefik`
+      // away from the `dokploy cloud` sub-group above).
+      exclude takodu
     }
 
     group 'internal' {

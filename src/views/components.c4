@@ -41,6 +41,15 @@ views {
     style takodu.haimiya.* {
       color primary
     }
+    // Traefik is the edge reverse proxy that fronts every API call to
+    // Haimiya. Drawn inside its own `dokploy cloud` sub-group to mirror
+    // the same convention used in the containers and deploy views, so
+    // that it is visually anchored to the self-hosted PaaS layer rather
+    // than appearing as a sibling of the Haimiya data stores.
+    group 'dokploy cloud' {
+      color: indigo
+      include takodu.traefik
+    }
     group 'Internal Containers' {
       include takodu.haimiyaDb, takodu.cache, openinary, gorush
     }
