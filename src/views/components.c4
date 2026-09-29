@@ -15,7 +15,7 @@ views {
   //   - Gorush PostgreSQL (`takodu.gorushDb`) — owned by Gorush, not by Haimiya,
   //     but shown for completeness because Gorush sits in the dependency chain.
   //   - External systems reached by Haimiya components:
-  //       deepseek, google, stripe, decoleta, ses
+  //       deepseek, google, googleCalendar, stripe, decoleta, ses, whatsapp
   //
   // The view does not include people / actors (those belong to landscape).
 
@@ -28,8 +28,9 @@ views {
       backed by the Garage S3-compatible bucket, the
       in-platform Gorush push notification gateway
       (with its own PostgreSQL), and the external
-      systems they integrate with (LLM, OAuth, payments,
-      identity lookup, email).
+      systems they integrate with (LLM, OAuth, calendar
+      sync, payments, identity lookup, email,
+      WhatsApp).
     '
     group 'Haimiya API' {
       include takodu.haimiya.*
@@ -41,7 +42,7 @@ views {
       include takodu.haimiyaDb, takodu.cache, takodu.openinary, takodu.garage, takodu.gorush, takodu.gorushDb
     }
     group 'External Services' {
-      include deepseek, google, stripe, decoleta, ses
+      include deepseek, google, googleCalendar, stripe, decoleta, ses, whatsapp
     }
     autoLayout LeftRight 0 0
   }

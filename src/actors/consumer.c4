@@ -1,0 +1,36 @@
+model {
+
+  // === Actor: End Customer (Final Client / Consumer) =======================
+  // The end consumer of a MYPE service. They are the person whose
+  // appointment is booked and who actually receives the service.
+  //
+  // Distinct from the MYPE-side actors (owner, employer):
+  //   - Does NOT hold a Takodu user account.
+  //   - Does NOT log into Gremory (the admin webapp).
+  //   - Is identified in the platform by DNI / RUC / CE / passport
+  //     through the CRM bounded context.
+  //   - Reached outbound through transactional email (Amazon SES)
+  //     and push notifications (Gorush).
+  //
+  // The customer's record is created and maintained by MYPE staff
+  // (owner / employer) on their behalf, and their appointments are
+  // scheduled either by staff or by the conversational AI assistant
+  // acting on behalf of the establishment.
+
+  consumer = actor 'Consumer' {
+    description '
+      End consumer of a MYPE service (the person who books
+      and receives the appointment). Interacts with the
+      MYPE exclusively through WhatsApp Business: they
+      chat with the WhatsApp number of the establishment
+      and the conversational AI agent resolves their
+      request. Identified by DNI / RUC / CE / passport
+      in the CRM, and also reached outbound through
+      transactional email (Amazon SES) and push
+      notifications (Gorush). Does not hold a Takodu
+      user account; their identity, contact data, and
+      appointments are managed by the MYPE staff on
+      their behalf.
+    '
+  }
+}

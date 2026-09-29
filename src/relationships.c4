@@ -7,6 +7,18 @@ model {
   owner -> takodu.gremory 'Manages subscription, services, staff, and occupation reports'
   employer -> takodu.gremory 'Checks the daily agenda and receives reschedule alerts'
 
+  // The End Customer (final client / consumer) does not hold a Takodu
+  // user account, never logs into the Gremory admin webapp, and never
+  // talks to the Haimiya REST API directly. Their only entry point is
+  // WhatsApp: they chat with the MYPE's WhatsApp Business number and
+  // the WhatsApp Cloud API delivers every message to the assistant
+  // through a webhook. The consumer's identity records (CRM) and
+  // appointments (Scheduling) are managed on their behalf by the
+  // assistant and MYPE staff, never accessed by the consumer directly.
+  consumer -> whatsapp 'Chats with the MYPE establishment to book, reschedule, or cancel appointments' {
+    technology 'WhatsApp Cloud API'
+  }
+
   // ---- Frontend -> backend -------------------------------------------------
   // The frontend never reaches Haimiya directly: every business API call
   // from Gremory is sent over the public internet to the Traefik edge
@@ -166,6 +178,12 @@ model {
   takodu.haimiya.assistant -> deepseek 'Sends chat completion requests to the LLM' {
     technology 'HTTPS/REST'
   }
+  takodu.haimiya.assistant -> whatsapp 'Sends chat replies through the WhatsApp Cloud API' {
+    technology 'HTTPS/REST'
+  }
+  whatsapp -> takodu.haimiya.assistant 'Delivers incoming WhatsApp messages via webhook' {
+    technology 'HTTPS/REST'
+  }
   takodu.haimiya.billing -> stripe 'Creates checkout sessions and processes subscription charges' {
     technology 'HTTPS/REST'
   }
@@ -179,6 +197,9 @@ model {
     technology 'HTTPS/REST'
   }
   takodu.haimiya.notifications -> takodu.gorush 'Dispatches push notifications to employee devices' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya.scheduling -> googleCalendar 'Mirrors every booked appointment into the Google Calendar of the MYPE owner' {
     technology 'HTTPS/REST'
   }
 
@@ -200,6 +221,12 @@ model {
     technology 'HTTPS/REST'
   }
   takodu.haimiya -> ses 'Sends transactional email through Amazon SES' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya -> googleCalendar 'Mirrors appointments into the Google Calendar of the MYPE owner' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya -> whatsapp 'Reaches end consumers through the WhatsApp Business conversational channel' {
     technology 'HTTPS/REST'
   }
   takodu.gremory -> takodu.gorush 'Registers the service worker and subscribes employee browsers to push notifications' {

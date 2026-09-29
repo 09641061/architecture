@@ -1,0 +1,25 @@
+model {
+
+  // === External: Google Calendar ===========================================
+  // Calendar provider used by the Scheduling bounded context to mirror
+  // every booked appointment into the MYPE owner's Google Calendar, so
+  // the establishment's day plan stays in sync with the MYPE staff's
+  // personal calendar without manual copy-paste.
+
+  googleCalendar = system 'Google Calendar' {
+    #external, #api
+    description '
+      Calendar provider used by the Scheduling bounded
+      context to mirror every booked appointment into
+      the Google Calendar of the MYPE owner, keeping
+      the establishment day plan in sync with the
+      MYPE staff personal calendar.
+    '
+    technology 'Google Calendar API'
+    style {
+      color: secondary
+      border: dashed
+      icon ../../icons/google-calendar.svg
+    }
+  }
+}

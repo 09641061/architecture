@@ -12,8 +12,8 @@ views {
       as a single box.
     '
     include takodu
-    include owner, employer
-    include deepseek, decoleta, ses, google, stripe
+    include owner, employer, consumer
+    include deepseek, decoleta, ses, google, googleCalendar, stripe, whatsapp
     autoLayout LeftRight
   }
 }

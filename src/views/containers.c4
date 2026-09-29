@@ -25,13 +25,17 @@ views {
       sub-group to mirror the deploy view, signalling that it is the edge
       reverse proxy of the self-hosted infrastructure. Haimiya is shown
       attached to every external system it integrates with (Google OAuth
-      2, DeepSeek, Stripe, Decoleta, Amazon SES). The frontend never
-      reaches Haimiya directly: Gremory sends every business API call to
-      Traefik, which terminates TLS and routes the request to Haimiya
-      inside the platform. Gremory also reaches Google OAuth 2 and Stripe
-      directly from the browser. Openinary persists media assets in
-      Garage (S3-compatible object storage). Actors remain outside the
-      platform.
+      2, DeepSeek, Stripe, Decoleta, Amazon SES, WhatsApp Business).
+      The frontend never reaches Haimiya directly: Gremory sends
+      every business API call to Traefik, which terminates TLS and
+      routes the request to Haimiya inside the platform. Gremory also
+      reaches Google OAuth 2 and Stripe directly from the browser.
+      Openinary persists media assets in Garage (S3-compatible object
+      storage). All three actors (owner, employer, consumer) remain
+      outside the platform: owner and employer interact with it
+      through Gremory; the end consumer (final client) does not hold
+      a Takodu account and is reached only through WhatsApp,
+      transactional email, and push notifications.
     '
     group 'Takodu Platform' {
       // Edge / control plane of the self-hosted PaaS layer. Mirrors the
@@ -45,9 +49,9 @@ views {
       }
       include takodu.gremory, takodu.haimiya, takodu.openinary, takodu.garage, takodu.gorush, takodu.haimiyaDb, takodu.gorushDb, takodu.cache
     }
-    include owner, employer
+    include owner, employer, consumer
     group 'External Services' {
-      include deepseek, decoleta, ses, google, stripe
+      include deepseek, decoleta, ses, google, googleCalendar, stripe, whatsapp
     }
     autoLayout LeftRight
   }

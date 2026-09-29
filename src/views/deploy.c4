@@ -3,12 +3,13 @@ views {
   // === Deploy =============================================================
   // C4 deployment view (skeleton). Only includes what was explicitly
   // requested:
-  //   - The two MYPE users (owner, employer) reach the platform through
-  //     the deployment boundary.
+  //   - The three actors (owner, employer, consumer) reach the platform
+  //     through the deployment boundary.
   //   - The External Services group sits outside the Deploy boundary,
   //     alongside the actors, because the platform does not own the
   //     infrastructure where those services run (DeepSeek LLM, Stripe,
-  //     Google OAuth, Decoleta identity lookup, Amazon SES).
+  //     Google OAuth, Google Calendar, Decoleta identity lookup,
+  //     Amazon SES, WhatsApp Business).
   //   - The Deploy group is the outermost deployment boundary.
   //   - Inside it, two top-level hosting tiers are declared:
   //       * vercel cloud          — hosts the Gremory webapp.
@@ -29,29 +30,31 @@ views {
   view deploy of takodu {
     title 'Takodu Platform — Deploy'
     description '
-      Deployment view skeleton. Both MYPE users reach
-      the platform through the deployment boundary.
-      Two hosting tiers are declared: vercel cloud
-      hosts the Gremory frontend, and dokploy takodu
-      cloud manages the two self-hosted NixOS servers
+      Deployment view skeleton. All three actors
+      (owner, employer, consumer) reach the platform
+      through the deployment boundary. Two hosting
+      tiers are declared: vercel cloud hosts the
+      Gremory frontend, and dokploy takodu cloud
+      manages the two self-hosted NixOS servers
       (azusa nixos server for the Haimiya core
       business stack, and kota nixos server for
       the media + push stack) plus the Dokploy PaaS
       and the Traefik edge reverse proxy grouped
       together as the dokploy cloud edge / control
       plane. External Services (DeepSeek, Stripe,
-      Google OAuth, Decoleta, Amazon SES) sit
-      outside the Deploy boundary because the
-      platform does not own their infrastructure.
+      Google OAuth, Google Calendar, Decoleta,
+      Amazon SES, WhatsApp Business) sit outside the
+      Deploy boundary because the platform does not
+      own their infrastructure.
     '
 
     // Actors sit outside the Deploy boundary.
-    include owner, employer
+    include owner, employer, consumer
 
     // External systems are not deployed by Takodu, so they sit
     // outside the Deploy boundary alongside the actors.
     group 'External Services' {
-      include deepseek, decoleta, ses, google, stripe
+      include deepseek, decoleta, ses, google, googleCalendar, stripe, whatsapp
     }
 
     // Outermost deployment boundary. Everything Takodu runs lives
