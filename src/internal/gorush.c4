@@ -1,0 +1,21 @@
+model {
+
+  // === Internal > Gorush ===================================================
+  // Top-level: push notification gateway for real-time schedule alerts to
+  // employee devices. Self-hosted on the kota NixOS server, but conceptually
+  // a separate software system (not part of the Takodu domain boundary).
+  // Co-located here because it shares the same self-hosted infrastructure
+  // footprint as the other internal services and is not an external system.
+  // Gremory registers the browser service worker against it directly,
+  // and Haimiya (notifications context) dispatches pushes through it.
+
+  gorush = api 'Gorush' {
+    #push
+    description '
+      Push notification gateway for real-time
+      schedule alerts to employee devices.
+    '
+    technology 'Gorush'
+    icon: ../../icons/gorush.svg
+  }
+}

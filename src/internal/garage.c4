@@ -1,0 +1,21 @@
+model {
+
+  // === Internal > Garage ===================================================
+  // Top-level: S3-compatible object store used by Openinary to persist
+  // processed media assets (originals + derivatives). Self-hosted alongside
+  // Takodu on the kota NixOS server, but conceptually a separate software
+  // system (not part of the Takodu domain boundary). Co-located here
+  // because it shares the same self-hosted infrastructure footprint as the
+  // other internal services and is not an external (third-party) system.
+
+  garage = storage 'Garage' {
+    #storage
+    description '
+      S3-compatible object store that persists
+      media assets uploaded by MYPEs and the
+      derivatives produced by Openinary.
+    '
+    technology 'S3-compatible'
+    icon: ../../icons/garage.svg
+  }
+}

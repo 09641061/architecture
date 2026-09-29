@@ -7,6 +7,18 @@ model {
   owner -> takodu.gremory 'Manages subscription, services, staff, and occupation reports'
   employer -> takodu.gremory 'Checks the daily agenda and receives reschedule alerts'
 
+  // The End Customer (final client / consumer) does not hold a Takodu
+  // user account, never logs into the Gremory admin webapp, and never
+  // talks to the Haimiya REST API directly. Their only entry point is
+  // WhatsApp: they chat with the MYPE's WhatsApp Business number and
+  // the WhatsApp Cloud API delivers every message to the assistant
+  // through a webhook. The consumer's identity records (CRM) and
+  // appointments (Scheduling) are managed on their behalf by the
+  // assistant and MYPE staff, never accessed by the consumer directly.
+  consumer -> whatsapp 'Chats with the MYPE establishment to book, reschedule, or cancel appointments' {
+    technology 'WhatsApp Cloud API'
+  }
+
   // ---- Frontend -> backend -------------------------------------------------
   // The frontend never reaches Haimiya directly: every business API call
   // from Gremory is sent over the public internet to the Traefik edge
@@ -35,7 +47,7 @@ model {
   // ---- Component -> Database (Haimiya PostgreSQL) --------------------------
   // 12 of 13 contexts use the Haimiya PostgreSQL; `media` has no own schema
   // (delegates everything to Openinary). Gorush has its own PostgreSQL
-  // (`takodu.gorushDb`) declared as a separate container below.
+  // (`gorushDb`) declared as a separate top-level element below.
   takodu.haimiya.iam -> takodu.haimiyaDb 'Reads and writes users, roles, and sessions' {
     technology 'JDBC/PostgreSQL'
   }
@@ -166,19 +178,28 @@ model {
   takodu.haimiya.assistant -> deepseek 'Sends chat completion requests to the LLM' {
     technology 'HTTPS/REST'
   }
+  takodu.haimiya.assistant -> whatsapp 'Sends chat replies through the WhatsApp Cloud API' {
+    technology 'HTTPS/REST'
+  }
+  whatsapp -> takodu.haimiya.assistant 'Delivers incoming WhatsApp messages via webhook' {
+    technology 'HTTPS/REST'
+  }
   takodu.haimiya.billing -> stripe 'Creates checkout sessions and processes subscription charges' {
     technology 'HTTPS/REST'
   }
   takodu.haimiya.crm -> decoleta 'Looks up customer identity by document number' {
     technology 'HTTPS/REST'
   }
-  takodu.haimiya.media -> takodu.openinary 'Uploads and transforms media assets' {
+  takodu.haimiya.media -> openinary 'Uploads and transforms media assets' {
     technology 'HTTPS/REST'
   }
   takodu.haimiya.notifications -> ses 'Sends transactional email through Amazon SESv2' {
     technology 'HTTPS/REST'
   }
-  takodu.haimiya.notifications -> takodu.gorush 'Dispatches push notifications to employee devices' {
+  takodu.haimiya.notifications -> gorush 'Dispatches push notifications to employee devices' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya.scheduling -> googleCalendar 'Mirrors every booked appointment into the Google Calendar of the MYPE owner' {
     technology 'HTTPS/REST'
   }
 
@@ -202,7 +223,13 @@ model {
   takodu.haimiya -> ses 'Sends transactional email through Amazon SES' {
     technology 'HTTPS/REST'
   }
-  takodu.gremory -> takodu.gorush 'Registers the service worker and subscribes employee browsers to push notifications' {
+  takodu.haimiya -> googleCalendar 'Mirrors appointments into the Google Calendar of the MYPE owner' {
+    technology 'HTTPS/REST'
+  }
+  takodu.haimiya -> whatsapp 'Reaches end consumers through the WhatsApp Business conversational channel' {
+    technology 'HTTPS/REST'
+  }
+  takodu.gremory -> gorush 'Registers the service worker and subscribes employee browsers to push notifications' {
     technology 'HTTPS/REST'
   }
   takodu.gremory -> stripe 'Tokenizes payment methods in the browser through Stripe.js' {
@@ -213,15 +240,17 @@ model {
   }
 
   // ---- Container -> Internal container -------------------------------------
-  // Container-to-container relationships inside the Takodu boundary that
-  // are not derived from any component-level edge. Openinary stores
-  // originals and processed derivatives in the S3-compatible Garage bucket,
-  // and Gorush uses its own PostgreSQL instance to persist push queue
-  // state, device subscriptions, and delivery logs.
-  takodu.openinary -> takodu.garage 'Persists media assets and derivatives in the S3-compatible bucket' {
+  // Container-to-container relationships that are not derived from any
+  // component-level edge. Garage, Openinary, Gorush, and Gorush PostgreSQL
+  // are top-level elements (not children of the `takodu` system), so
+  // these edges are now cross-system rather than intra-takodu. Openinary
+  // stores originals and processed derivatives in the S3-compatible
+  // Garage bucket, and Gorush uses its own PostgreSQL instance to persist
+  // push queue state, device subscriptions, and delivery logs.
+  openinary -> garage 'Persists media assets and derivatives in the S3-compatible bucket' {
     technology 'HTTPS/S3'
   }
-  takodu.gorush -> takodu.gorushDb 'Persists push queue state, device subscriptions, and delivery logs' {
+  gorush -> gorushDb 'Persists push queue state, device subscriptions, and delivery logs' {
     technology 'JDBC/PostgreSQL'
   }
 
@@ -234,10 +263,10 @@ model {
   takodu.dokploy -> takodu.haimiya 'Orchestrates the Haimiya stack on azusa nixos server' {
     technology 'Docker'
   }
-  takodu.dokploy -> takodu.gorush 'Orchestrates the Gorush stack on kota nixos server' {
+  takodu.dokploy -> gorush 'Orchestrates the Gorush stack on kota nixos server' {
     technology 'Docker'
   }
-  takodu.dokploy -> takodu.openinary 'Orchestrates the Openinary media service on kota nixos server' {
+  takodu.dokploy -> openinary 'Orchestrates the Openinary media service on kota nixos server' {
     technology 'Docker'
   }
 }

@@ -1,0 +1,32 @@
+model {
+
+  // === External: WhatsApp Business Platform =================================
+  // Conversational channel used by the Assistant bounded context to reach the
+  // end consumer (Consumer actor) on WhatsApp. MYPE staff configure the
+  // WhatsApp Business number of their establishment, and end consumers can
+  // chat with the conversational AI agent to book, reschedule, or cancel
+  // appointments through the WhatsApp Business Platform Cloud API.
+
+  whatsapp = system 'WhatsApp Business' {
+    #external, #api
+    description '
+      Conversational channel used by the Assistant bounded
+      context to chat with end consumers on WhatsApp.
+      End consumers send natural-language messages
+      ("Hola, quiero una cita mañana a las 4") that
+      the WhatsApp Cloud API delivers to the assistant
+      through a webhook; the assistant invokes tool
+      calls against Scheduling, Catalog, Workforce, and
+      CRM to resolve intent, validate availability,
+      and persist the booking; the assistant then
+      sends the confirmation reply back through the
+      WhatsApp Cloud API to the consumer.
+    '
+    technology 'WhatsApp Cloud API'
+    style {
+      color: green
+      border: dashed
+      icon ../../icons/whatsapp.svg
+    }
+  }
+}
