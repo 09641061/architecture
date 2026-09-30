@@ -1,14 +1,127 @@
 model {
 
   // === Components > takodu.haimiya > Billing =================================
-  // Subscriptions, invoices, and Stripe payments.
+  // Billing bounded context: plans, subscriptions, Stripe payments, and AI conversation quotas.
 
   extend takodu.haimiya {
-    billing = component 'Billing' {
+    billing = component 'Billing Context' {
       description '
-        Subscriptions, invoices, and Stripe payments.
+        Bounded Context de Facturación y Planes: suscripciones SaaS B2B,
+        procesamiento de cobros recurrentes vía Stripe y control de cuotas de IA.
       '
       technology 'Spring Boot, Java 25'
+
+      // =========================================================================
+      // 1. INTERFACE LAYER (REST / DTOs / Assemblers / Inbound ACL Facade)
+      // =========================================================================
+      billingController = component 'Billing Controller' {
+        description 'Expone endpoints REST para mutación (suscribirse, cambiar de plan, webhooks de Stripe) y consultas de suscripción y facturas.'
+        technology 'Spring MVC (@RestController)'
+      }
+
+      billingContextFacade = component 'BillingContextFacade' {
+        description 'Interfaz pública de frontera consumida por Business, Assistant y Workforce.'
+        technology 'In-Process ACL Interface'
+      }
+
+      billingAssemblers = component 'Billing Assemblers' {
+        description 'Transforma Entidades y Value Objects a Request/Response DTOs y viceversa.'
+        technology 'Transform (Mappers & Assemblers)'
+      }
+
+      billingDtos = component 'Interface DTOs' {
+        description 'Records inmutables de frontera: CreateSubscriptionRequest, SubscriptionResponseDto.'
+        technology 'Java 25 Records (DTOs)'
+      }
+
+      // =========================================================================
+      // 2. APPLICATION LAYER (CQRS Services & Facade Implementation)
+      // =========================================================================
+      billingCommandService = component 'Billing Command Service' {
+        description 'Orquesta activación de planes, renovaciones y suspensiones por morosidad.'
+        technology 'Application Service (BillingCommandServiceImpl.java)'
+      }
+
+      billingQueryService = component 'Billing Query Service' {
+        description 'Orquesta consultas de planes y facturación recurrente.'
+        technology 'Application Service (BillingQueryServiceImpl.java)'
+      }
+
+      billingContextFacadeImpl = component 'BillingContextFacadeImpl' {
+        description 'Implementación de la fachada que valida si el tenant tiene suscripción activa.'
+        technology 'Application Service (BillingContextFacadeImpl.java)'
+      }
+
+      // =========================================================================
+      // 3. DOMAIN LAYER (Aggregates, Commands, Queries, Value Objects & Events)
+      // =========================================================================
+      billingAggregates = component 'Billing Aggregate' {
+        description 'Entidades de dominio: Subscription (Aggregate Root), Plan, Invoice, UsageQuota.'
+        technology 'Domain Model (Java 25 Records & Entities)'
+      }
+
+      billingCommands = component 'Billing Commands' {
+        description 'Commands: SubscribeToPlanCommand, UpgradePlanCommand, HandleStripeWebhookCommand.'
+        technology 'Java 25 Records'
+      }
+
+      billingQueries = component 'Billing Queries' {
+        description 'Queries: GetCurrentSubscriptionQuery, GetInvoicesByBusinessQuery.'
+        technology 'Java 25 Records'
+      }
+
+      billingValueObjects = component 'Billing Value Objects' {
+        description 'Value Objects: SubscriptionStatus, PlanTier, BillingInterval, StripeCustomerId.'
+        technology 'Domain Model (Value Objects)'
+      }
+
+      billingDomainEvents = component 'Billing Domain Events' {
+        description 'Events: SubscriptionCreatedEvent, SubscriptionRenewedEvent, PaymentFailedEvent.'
+        technology 'Domain Events'
+      }
+
+      // =========================================================================
+      // 4. INFRASTRUCTURE LAYER (Persistence, Adapters)
+      // =========================================================================
+      billingRepository = component 'Billing Repository' {
+        description 'Persistencia JPA de suscripciones, pagos y facturas en PostgreSQL.'
+        technology 'Spring Data JPA (BillingRepository.java)'
+      }
+
+      stripePaymentAdapter = component 'Stripe Payment Adapter' {
+        description 'Cliente de integración con la API oficial de Stripe Checkout / Subscriptions.'
+        technology 'HTTPS / REST Adapter (Stripe SDK)'
+      }
     }
   }
+
+  // ===========================================================================
+  // RELACIONES Y FLUJO INTERNO (DDD)
+  // ===========================================================================
+
+  // 1. Controladores -> Assemblers & DTOs
+  takodu.haimiya.billing.billingController -> takodu.haimiya.billing.billingAssemblers 'Transforma Request/Response con' 'Llamada interna'
+  takodu.haimiya.billing.billingAssemblers -> takodu.haimiya.billing.billingDtos 'Genera DTOs de' 'Referencia'
+
+  // 2. Controladores / Facades -> Aplicación
+  takodu.haimiya.billing.billingController -> takodu.haimiya.billing.billingCommandService 'Ejecuta comandos en' 'Llamada interna'
+  takodu.haimiya.billing.billingController -> takodu.haimiya.billing.billingQueryService 'Ejecuta consultas en' 'Llamada interna'
+  takodu.haimiya.billing.billingContextFacade -> takodu.haimiya.billing.billingContextFacadeImpl 'Implementado por' 'Implementación'
+  takodu.haimiya.billing.billingContextFacadeImpl -> takodu.haimiya.billing.billingQueryService 'Valida estado de suscripción' 'Llamada interna'
+
+  // 3. Aplicación -> Dominio
+  takodu.haimiya.billing.billingCommandService -> takodu.haimiya.billing.billingCommands 'Procesa commands de' 'Referencia'
+  takodu.haimiya.billing.billingQueryService -> takodu.haimiya.billing.billingQueries 'Procesa queries de' 'Referencia'
+  takodu.haimiya.billing.billingCommandService -> takodu.haimiya.billing.billingAggregates 'Ejecuta lógica de negocio sobre' 'Llamada a método'
+  takodu.haimiya.billing.billingAggregates -> takodu.haimiya.billing.billingValueObjects 'Contiene y valida' 'Referencia'
+  takodu.haimiya.billing.billingAggregates -> takodu.haimiya.billing.billingDomainEvents 'Publica eventos de dominio' 'Evento'
+
+  // 4. Aplicación -> Infraestructura
+  takodu.haimiya.billing.billingCommandService -> takodu.haimiya.billing.billingRepository 'Persiste suscripciones en' 'Llamada a método'
+  takodu.haimiya.billing.billingCommandService -> takodu.haimiya.billing.stripePaymentAdapter 'Crea checkout / cobra en' 'Llamada a método'
+  takodu.haimiya.billing.billingQueryService -> takodu.haimiya.billing.billingRepository 'Lee facturación en' 'Llamada a método'
+
+  // 5. Infraestructura -> Almacenamiento y Externos
+  takodu.haimiya.billing.billingRepository -> takodu.haimiyaDb 'Persiste/lee en tablas subscriptions e invoices' 'JDBC / SQL'
+  takodu.haimiya.billing.stripePaymentAdapter -> stripe 'Procesa pagos en' 'HTTPS / REST'
 }

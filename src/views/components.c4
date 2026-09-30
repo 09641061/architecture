@@ -3,37 +3,17 @@ views {
   // === Components: Haimiya =================================================
   // C4 level 3: 13 components inside the Haimiya REST API together with the
   // data stores and external systems those components depend on.
-  //
-  // Includes:
-  //   - All 13 bounded contexts inside Haimiya (`takodu.haimiya.*`)
-  //   - Haimiya PostgreSQL (`takodu.haimiyaDb`) — read/written by 12 components
-  //   - Redis              (`takodu.cache`)    — used by iam, assistant, workforce
-  //   - Internal co-located infrastructure reached by Haimiya components:
-  //       openinary     (media processing)
-  //       garage        (S3-compatible object store used by Openinary)
-  //       gorush        (push notification gateway used by notifications)
-  //   - Gorush PostgreSQL (`gorushDb`) — owned by Gorush, not by Haimiya,
-  //     but shown for completeness because Gorush sits in the dependency
-  //     chain. These four are top-level elements (not children of the
-  //     `takodu` system), so they are referenced by their unqualified
-  //     names.
-  //   - External systems reached by Haimiya components:
-  //       deepseek, google, googleCalendar, stripe, decoleta, ses, whatsapp
-  //
-  // The view does not include people / actors (those belong to context and containers).
 
   view haimiyaComponents of takodu.haimiya {
     title 'Haimiya API — Components'
     description '
-      The 13 bounded contexts inside Haimiya, plus the
+      The bounded contexts inside Haimiya, plus the
       Haimiya PostgreSQL / Redis stores they read and
       write, the in-platform Openinary media service
       backed by the Garage S3-compatible bucket, the
       in-platform Gorush push notification gateway
       (with its own PostgreSQL), and the external
-      systems they integrate with (LLM, OAuth, calendar
-      sync, payments, identity lookup, email,
-      WhatsApp).
+      systems they integrate with.
     '
     group 'Haimiya API' {
       include takodu.haimiya.*
@@ -41,11 +21,6 @@ views {
     style takodu.haimiya.* {
       color primary
     }
-    // Traefik is the edge reverse proxy that fronts every API call to
-    // Haimiya. Drawn inside its own `dokploy cloud` sub-group to mirror
-    // the same convention used in the containers and deploy views, so
-    // that it is visually anchored to the self-hosted PaaS layer rather
-    // than appearing as a sibling of the Haimiya data stores.
     group 'dokploy cloud' {
       color: indigo
       include takodu.traefik
@@ -57,5 +32,253 @@ views {
       include deepseek, google, googleCalendar, stripe, decoleta, ses, whatsapp
     }
     autoLayout LeftRight 0 0
+  }
+
+  // === 1. Scheduling Bounded Context =======================================
+  view schedulingComponents of takodu.haimiya.scheduling {
+    title 'Scheduling Bounded Context — Component Architecture (DDD)'
+    description 'Componentes tácticos de Scheduling: Interface, Application (CQRS), Domain e Infrastructure.'
+    
+    group 'Interface Layer' {
+      include takodu.haimiya.scheduling.appointmentController,
+              takodu.haimiya.scheduling.schedulingContextFacade,
+              takodu.haimiya.scheduling.schedulingAssemblers,
+              takodu.haimiya.scheduling.schedulingDtos
+    }
+    group 'Application Layer' {
+      include takodu.haimiya.scheduling.appointmentCommandService,
+              takodu.haimiya.scheduling.appointmentQueryService,
+              takodu.haimiya.scheduling.schedulingContextFacadeImpl
+    }
+    group 'Domain Layer' {
+      include takodu.haimiya.scheduling.appointmentAggregates,
+              takodu.haimiya.scheduling.schedulingCommands,
+              takodu.haimiya.scheduling.schedulingQueries,
+              takodu.haimiya.scheduling.schedulingValueObjects,
+              takodu.haimiya.scheduling.schedulingDomainEvents,
+              takodu.haimiya.scheduling.schedulingDomainService
+    }
+    group 'Infrastructure Layer' {
+      include takodu.haimiya.scheduling.scheduleRepository,
+              takodu.haimiya.scheduling.redisRedlockAdapter,
+              takodu.haimiya.scheduling.googleCalendarAdapter,
+              takodu.haimiya.scheduling.schedulingWorkforceAclService,
+              takodu.haimiya.scheduling.schedulingCatalogAclService
+    }
+    include takodu.haimiyaDb, takodu.cache, googleCalendar
+    autoLayout TopBottom 0 0
+  }
+
+  // === 2. Catalog Bounded Context ==========================================
+  view catalogComponents of takodu.haimiya.catalog {
+    title 'Catalog Bounded Context — Component Architecture (DDD)'
+    description 'Componentes tácticos de Catalog: Interface, Application (CQRS), Domain e Infrastructure.'
+    
+    group 'Interface Layer' {
+      include takodu.haimiya.catalog.catalogController,
+              takodu.haimiya.catalog.catalogContextFacade,
+              takodu.haimiya.catalog.catalogAssemblers,
+              takodu.haimiya.catalog.catalogDtos
+    }
+    group 'Application Layer' {
+      include takodu.haimiya.catalog.catalogCommandService,
+              takodu.haimiya.catalog.catalogQueryService,
+              takodu.haimiya.catalog.catalogContextFacadeImpl
+    }
+    group 'Domain Layer' {
+      include takodu.haimiya.catalog.catalogAggregates,
+              takodu.haimiya.catalog.catalogCommands,
+              takodu.haimiya.catalog.catalogQueries,
+              takodu.haimiya.catalog.catalogValueObjects,
+              takodu.haimiya.catalog.catalogDomainEvents
+    }
+    group 'Infrastructure Layer' {
+      include takodu.haimiya.catalog.catalogRepository,
+              takodu.haimiya.catalog.catalogWorkforceAclService
+    }
+    include takodu.haimiyaDb
+    autoLayout TopBottom 0 0
+  }
+
+  // === 3. Workforce Bounded Context ========================================
+  view workforceComponents of takodu.haimiya.workforce {
+    title 'Workforce Bounded Context — Component Architecture (DDD)'
+    description 'Componentes tácticos de Workforce: Interface, Application (CQRS), Domain e Infrastructure.'
+    
+    group 'Interface Layer' {
+      include takodu.haimiya.workforce.workforceController,
+              takodu.haimiya.workforce.workforceContextFacade,
+              takodu.haimiya.workforce.workforceAssemblers,
+              takodu.haimiya.workforce.workforceDtos
+    }
+    group 'Application Layer' {
+      include takodu.haimiya.workforce.workforceCommandService,
+              takodu.haimiya.workforce.workforceQueryService,
+              takodu.haimiya.workforce.workforceContextFacadeImpl
+    }
+    group 'Domain Layer' {
+      include takodu.haimiya.workforce.workforceAggregates,
+              takodu.haimiya.workforce.workforceCommands,
+              takodu.haimiya.workforce.workforceQueries,
+              takodu.haimiya.workforce.workforceValueObjects,
+              takodu.haimiya.workforce.workforceDomainEvents
+    }
+    group 'Infrastructure Layer' {
+      include takodu.haimiya.workforce.workforceRepository,
+              takodu.haimiya.workforce.workforceIamAclService,
+              takodu.haimiya.workforce.amazonSesEmailAdapter
+    }
+    include takodu.haimiyaDb, ses
+    autoLayout TopBottom 0 0
+  }
+
+  // === 4. CRM Bounded Context ==============================================
+  view crmComponents of takodu.haimiya.crm {
+    title 'CRM Bounded Context — Component Architecture (DDD)'
+    description 'Componentes tácticos de CRM: Interface, Application (CQRS), Domain e Infrastructure.'
+    
+    group 'Interface Layer' {
+      include takodu.haimiya.crm.customerController,
+              takodu.haimiya.crm.crmContextFacade,
+              takodu.haimiya.crm.crmAssemblers,
+              takodu.haimiya.crm.crmDtos
+    }
+    group 'Application Layer' {
+      include takodu.haimiya.crm.customerCommandService,
+              takodu.haimiya.crm.customerQueryService,
+              takodu.haimiya.crm.crmContextFacadeImpl
+    }
+    group 'Domain Layer' {
+      include takodu.haimiya.crm.customerAggregates,
+              takodu.haimiya.crm.customerCommands,
+              takodu.haimiya.crm.customerQueries,
+              takodu.haimiya.crm.customerValueObjects,
+              takodu.haimiya.crm.customerDomainEvents
+    }
+    group 'Infrastructure Layer' {
+      include takodu.haimiya.crm.customerRepository,
+              takodu.haimiya.crm.decoletaIdentityAdapter
+    }
+    include takodu.haimiyaDb, decoleta
+    autoLayout TopBottom 0 0
+  }
+
+  // === 5. Billing Bounded Context ==========================================
+  view billingComponents of takodu.haimiya.billing {
+    title 'Billing Bounded Context — Component Architecture (DDD)'
+    description 'Componentes tácticos de Billing: Interface, Application (CQRS), Domain e Infrastructure.'
+    
+    group 'Interface Layer' {
+      include takodu.haimiya.billing.billingController,
+              takodu.haimiya.billing.billingContextFacade,
+              takodu.haimiya.billing.billingAssemblers,
+              takodu.haimiya.billing.billingDtos
+    }
+    group 'Application Layer' {
+      include takodu.haimiya.billing.billingCommandService,
+              takodu.haimiya.billing.billingQueryService,
+              takodu.haimiya.billing.billingContextFacadeImpl
+    }
+    group 'Domain Layer' {
+      include takodu.haimiya.billing.billingAggregates,
+              takodu.haimiya.billing.billingCommands,
+              takodu.haimiya.billing.billingQueries,
+              takodu.haimiya.billing.billingValueObjects,
+              takodu.haimiya.billing.billingDomainEvents
+    }
+    group 'Infrastructure Layer' {
+      include takodu.haimiya.billing.billingRepository,
+              takodu.haimiya.billing.stripePaymentAdapter
+    }
+    include takodu.haimiyaDb, stripe
+    autoLayout TopBottom 0 0
+  }
+
+  // === 6. Business Bounded Context =========================================
+  view businessComponents of takodu.haimiya.business {
+    title 'Business Bounded Context — Component Architecture (DDD)'
+    description 'Componentes tácticos de Business: Interface, Application (CQRS), Domain e Infrastructure.'
+    
+    group 'Interface Layer' {
+      include takodu.haimiya.business.businessController,
+              takodu.haimiya.business.businessContextFacade,
+              takodu.haimiya.business.businessAssemblers,
+              takodu.haimiya.business.businessDtos
+    }
+    group 'Application Layer' {
+      include takodu.haimiya.business.businessCommandService,
+              takodu.haimiya.business.businessQueryService,
+              takodu.haimiya.business.businessContextFacadeImpl
+    }
+    group 'Domain Layer' {
+      include takodu.haimiya.business.businessAggregates,
+              takodu.haimiya.business.businessCommands,
+              takodu.haimiya.business.businessQueries,
+              takodu.haimiya.business.businessValueObjects,
+              takodu.haimiya.business.businessDomainEvents
+    }
+    group 'Infrastructure Layer' {
+      include takodu.haimiya.business.businessRepository,
+              takodu.haimiya.business.businessBillingAclService
+    }
+    include takodu.haimiyaDb
+    autoLayout TopBottom 0 0
+  }
+
+  // === 7. Analytics Bounded Context ========================================
+  view analyticsComponents of takodu.haimiya.analytics {
+    title 'Analytics Bounded Context — Component Architecture (DDD)'
+    description 'Componentes tácticos de Analytics: Interface, Application, Domain e Infrastructure.'
+    
+    group 'Interface Layer' {
+      include takodu.haimiya.analytics.analyticsController,
+              takodu.haimiya.analytics.analyticsAssemblers,
+              takodu.haimiya.analytics.analyticsDtos
+    }
+    group 'Application Layer' {
+      include takodu.haimiya.analytics.analyticsQueryService,
+              takodu.haimiya.analytics.appointmentAnalyticsListener
+    }
+    group 'Domain Layer' {
+      include takodu.haimiya.analytics.analyticsReadModels,
+              takodu.haimiya.analytics.analyticsQueries,
+              takodu.haimiya.analytics.analyticsValueObjects
+    }
+    group 'Infrastructure Layer' {
+      include takodu.haimiya.analytics.analyticsReadRepository,
+              takodu.haimiya.analytics.deepSeekAiClient
+    }
+    include takodu.haimiyaDb, deepseek
+    autoLayout TopBottom 0 0
+  }
+
+  // === 8. IAM Bounded Context ==============================================
+  view iamComponents of takodu.haimiya.iam {
+    title 'IAM Bounded Context — Component Architecture (DDD)'
+    description 'Componentes tácticos de IAM: Interface, Application, Domain e Infrastructure.'
+    
+    group 'Interface Layer' {
+      include takodu.haimiya.iam.authController,
+              takodu.haimiya.iam.iamContextFacade,
+              takodu.haimiya.iam.iamAssemblers,
+              takodu.haimiya.iam.iamDtos
+    }
+    group 'Application Layer' {
+      include takodu.haimiya.iam.authCommandService,
+              takodu.haimiya.iam.iamContextFacadeImpl
+    }
+    group 'Domain Layer' {
+      include takodu.haimiya.iam.userAggregates,
+              takodu.haimiya.iam.iamCommands,
+              takodu.haimiya.iam.iamValueObjects,
+              takodu.haimiya.iam.iamDomainEvents
+    }
+    group 'Infrastructure Layer' {
+      include takodu.haimiya.iam.userRepository,
+              takodu.haimiya.iam.redisSessionAdapter,
+              takodu.haimiya.iam.amazonSesVerificationAdapter
+    }
+    include takodu.haimiyaDb, takodu.cache, ses
+    autoLayout TopBottom 0 0
   }
 }
