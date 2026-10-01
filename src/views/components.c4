@@ -29,7 +29,7 @@ views {
       include takodu.haimiyaDb, takodu.cache, openinary, gorush
     }
     group 'External Services' {
-      include deepseek, google, googleCalendar, stripe, decoleta, ses, whatsapp
+      include deepseek, google, googleCalendar, stripe, ses, whatsapp
     }
     autoLayout LeftRight 0 0
   }
@@ -55,8 +55,7 @@ views {
               takodu.haimiya.scheduling.schedulingCommands,
               takodu.haimiya.scheduling.schedulingQueries,
               takodu.haimiya.scheduling.schedulingValueObjects,
-              takodu.haimiya.scheduling.schedulingDomainEvents,
-              takodu.haimiya.scheduling.schedulingDomainService
+              takodu.haimiya.scheduling.schedulingDomainEvents
     }
     group 'Infrastructure Layer' {
       include takodu.haimiya.scheduling.scheduleRepository,
@@ -156,10 +155,9 @@ views {
               takodu.haimiya.crm.customerDomainEvents
     }
     group 'Infrastructure Layer' {
-      include takodu.haimiya.crm.customerRepository,
-              takodu.haimiya.crm.decoletaIdentityAdapter
+      include takodu.haimiya.crm.customerRepository
     }
-    include takodu.haimiyaDb, decoleta
+    include takodu.haimiyaDb
     autoLayout TopBottom 0 0
   }
 
@@ -170,6 +168,7 @@ views {
     
     group 'Interface Layer' {
       include takodu.haimiya.billing.billingController,
+              takodu.haimiya.billing.stripeWebhookController,
               takodu.haimiya.billing.billingContextFacade,
               takodu.haimiya.billing.billingAssemblers,
               takodu.haimiya.billing.billingDtos

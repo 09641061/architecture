@@ -187,9 +187,6 @@ model {
   takodu.haimiya.billing -> stripe 'Creates checkout sessions and processes subscription charges' {
     technology 'HTTPS/REST'
   }
-  takodu.haimiya.crm -> decoleta 'Looks up customer identity by document number' {
-    technology 'HTTPS/REST'
-  }
   takodu.haimiya.media -> openinary 'Uploads and transforms media assets' {
     technology 'HTTPS/REST'
   }
@@ -215,9 +212,6 @@ model {
     technology 'HTTPS/REST'
   }
   takodu.haimiya -> stripe 'Manages MYPE subscription billing and one-off charges' {
-    technology 'HTTPS/REST'
-  }
-  takodu.haimiya -> decoleta 'Enriches customer identity records from external registries' {
     technology 'HTTPS/REST'
   }
   takodu.haimiya -> ses 'Sends transactional email through Amazon SES' {

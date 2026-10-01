@@ -71,7 +71,7 @@ model {
       }
 
       workforceValueObjects = component 'Domain Value Objects' {
-        description 'Value Objects: MemberStatus, InvitationStatus, Schedule, Shift, WorkingHours.'
+        description 'Value Objects: MemberStatus, InvitationStatus, Schedule, DayOfWeek.'
         technology 'Domain Model (Value Objects)'
       }
 

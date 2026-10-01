@@ -15,7 +15,7 @@ model {
       // 1. INTERFACE LAYER (REST / DTOs / Assemblers / Inbound ACL Facade)
       // =========================================================================
       businessController = component 'Business Controller' {
-        description 'Expone endpoints REST para mutación (organizaciones, sedes, datos fiscales) y consultas de información del negocio.'
+        description 'Expone endpoints REST para mutación (organizaciones, sedes) y consultas de información del negocio.'
         technology 'Spring MVC (@RestController)'
       }
 
@@ -56,12 +56,12 @@ model {
       // 3. DOMAIN LAYER (Aggregates, Commands, Queries, Value Objects & Events)
       // =========================================================================
       businessAggregates = component 'Business Aggregate' {
-        description 'Entidades de dominio: Organization (Aggregate Root), Establishment, TaxData.'
+        description 'Entidades de dominio: Organization (Aggregate Root), Establishment.'
         technology 'Domain Model (Java 25 Records & Entities)'
       }
 
       businessCommands = component 'Business Commands' {
-        description 'Commands: CreateOrganizationCommand, AddEstablishmentCommand, UpdateTaxDataCommand.'
+        description 'Commands: CreateOrganizationCommand, AddEstablishmentCommand, SuspendBusinessCommand.'
         technology 'Java 25 Records'
       }
 
@@ -71,7 +71,7 @@ model {
       }
 
       businessValueObjects = component 'Business Value Objects' {
-        description 'Value Objects: BusinessSlug, Ruc, Address, BusinessStatus, Timezone.'
+        description 'Value Objects: Ruc, Address, BusinessStatus, Timezone.'
         technology 'Domain Model (Value Objects)'
       }
 

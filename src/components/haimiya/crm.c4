@@ -71,12 +71,12 @@ model {
       }
 
       customerValueObjects = component 'Customer Value Objects' {
-        description 'Value Objects: PhoneNumber, DocumentId (DNI), CustomerStats, LoyaltyLevel.'
+        description 'Value Objects: PhoneNumber, DocumentId (DNI), CustomerStats.'
         technology 'Domain Model (Value Objects)'
       }
 
       customerDomainEvents = component 'Customer Domain Events' {
-        description 'Events: CustomerCreatedEvent, CustomerNoShowRecordedEvent, LoyaltyLevelUpgradedEvent.'
+        description 'Events: CustomerCreatedEvent, CustomerNoShowRecordedEvent.'
         technology 'Domain Events'
       }
 
@@ -86,11 +86,6 @@ model {
       customerRepository = component 'Customer Repository' {
         description 'Persistencia y búsquedas indexadas de clientes en PostgreSQL.'
         technology 'Spring Data JPA (CustomerRepository.java)'
-      }
-
-      decoletaIdentityAdapter = component 'Decoleta Identity Adapter' {
-        description 'Enriquece nombres a partir del DNI mediante API externa Decoleta.'
-        technology 'HTTPS / REST Adapter'
       }
     }
   }
@@ -119,10 +114,8 @@ model {
 
   // 4. Aplicación -> Infraestructura
   takodu.haimiya.crm.customerCommandService -> takodu.haimiya.crm.customerRepository 'Persiste cliente en' 'Llamada a método'
-  takodu.haimiya.crm.customerCommandService -> takodu.haimiya.crm.decoletaIdentityAdapter 'Enriquece identidad con' 'Llamada a método'
   takodu.haimiya.crm.customerQueryService -> takodu.haimiya.crm.customerRepository 'Lee clientes en' 'Llamada a método'
 
-  // 5. Infraestructura -> Almacenamiento y Externos
+  // 5. Infraestructura -> Almacenamiento
   takodu.haimiya.crm.customerRepository -> takodu.haimiyaDb 'Persiste/lee en tabla customers' 'JDBC / SQL'
-  takodu.haimiya.crm.decoletaIdentityAdapter -> decoleta 'Consulta DNI vía' 'HTTPS / REST'
 }

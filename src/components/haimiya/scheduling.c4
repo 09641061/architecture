@@ -20,7 +20,7 @@ model {
       }
 
       schedulingContextFacade = component 'SchedulingContextFacade' {
-        description 'Interfaz pública de frontera consumida in-process por Assistant/CRM.'
+        description 'Interfaz pública de frontera consumida in-process por Assistant.'
         technology 'In-Process ACL Interface'
       }
 
@@ -80,11 +80,6 @@ model {
         technology 'Domain Events (Application Events)'
       }
 
-      schedulingDomainService = component 'Slot Availability Domain Service' {
-        description 'Servicio de dominio puro para cálculo matemático y reglas de no solapamiento de slots.'
-        technology 'Domain Service'
-      }
-
       // =========================================================================
       // 4. INFRASTRUCTURE LAYER (Persistence, Adapters, Outbound ACL Services)
       // =========================================================================
@@ -136,8 +131,6 @@ model {
   takodu.haimiya.scheduling.appointmentCommandService -> takodu.haimiya.scheduling.appointmentAggregates 'Ejecuta lógica de negocio sobre' 'Llamada a método'
   takodu.haimiya.scheduling.appointmentAggregates -> takodu.haimiya.scheduling.schedulingValueObjects 'Contiene y valida' 'Referencia'
   takodu.haimiya.scheduling.appointmentAggregates -> takodu.haimiya.scheduling.schedulingDomainEvents 'Publica eventos de dominio' 'Evento'
-  takodu.haimiya.scheduling.appointmentCommandService -> takodu.haimiya.scheduling.schedulingDomainService 'Valida colisiones y disponibilidad usando' 'Llamada interna'
-  takodu.haimiya.scheduling.appointmentQueryService -> takodu.haimiya.scheduling.schedulingDomainService 'Calcula slots libres usando' 'Llamada interna'
 
   // 4. Aplicación -> Infraestructura / Outbound ACLs
   takodu.haimiya.scheduling.appointmentCommandService -> takodu.haimiya.scheduling.redisRedlockAdapter 'Adquiere/libera lock distribuido en' 'Llamada a método'

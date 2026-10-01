@@ -15,8 +15,13 @@ model {
       // 1. INTERFACE LAYER (REST / DTOs / Assemblers / Inbound ACL Facade)
       // =========================================================================
       billingController = component 'Billing Controller' {
-        description 'Expone endpoints REST para mutación (suscribirse, cambiar de plan, webhooks de Stripe) y consultas de suscripción y facturas.'
+        description 'Expone endpoints REST para mutación (suscribirse, cambiar de plan) y consultas de suscripción y facturas del estudio.'
         technology 'Spring MVC (@RestController)'
+      }
+
+      stripeWebhookController = component 'Stripe Webhook Controller' {
+        description 'Punto de enlace HTTP público que valida la firma criptográfica HMAC de Stripe y procesa eventos asíncronos de pago/suscripción.'
+        technology 'Spring MVC (@RestController, Webhook Receiver)'
       }
 
       billingContextFacade = component 'BillingContextFacade' {
@@ -106,6 +111,7 @@ model {
   // 2. Controladores / Facades -> Aplicación
   takodu.haimiya.billing.billingController -> takodu.haimiya.billing.billingCommandService 'Ejecuta comandos en' 'Llamada interna'
   takodu.haimiya.billing.billingController -> takodu.haimiya.billing.billingQueryService 'Ejecuta consultas en' 'Llamada interna'
+  takodu.haimiya.billing.stripeWebhookController -> takodu.haimiya.billing.billingCommandService 'Despacha eventos de pago en' 'Llamada interna'
   takodu.haimiya.billing.billingContextFacade -> takodu.haimiya.billing.billingContextFacadeImpl 'Implementado por' 'Implementación'
   takodu.haimiya.billing.billingContextFacadeImpl -> takodu.haimiya.billing.billingQueryService 'Valida estado de suscripción' 'Llamada interna'
 
