@@ -8,7 +8,7 @@ views {
   //   - The External Services group sits outside the Deploy boundary,
   //     alongside the actors, because the platform does not own the
   //     infrastructure where those services run (DeepSeek LLM, Stripe,
-  //     Google OAuth, Google Calendar, Decoleta identity lookup,
+  //     Google OAuth, Google Calendar,
   //     Amazon SES, WhatsApp Business).
   //   - The Deploy group is the outermost deployment boundary.
   //   - Inside it, two top-level hosting tiers are declared:
@@ -42,7 +42,7 @@ views {
       and the Traefik edge reverse proxy grouped
       together as the dokploy cloud edge / control
       plane. External Services (DeepSeek, Stripe,
-      Google OAuth, Google Calendar, Decoleta,
+      Google OAuth, Google Calendar,
       Amazon SES, WhatsApp Business) sit outside the
       Deploy boundary because the platform does not
       own their infrastructure.
@@ -54,7 +54,7 @@ views {
     // External systems are not deployed by Takodu, so they sit
     // outside the Deploy boundary alongside the actors.
     group 'External Services' {
-      include deepseek, decoleta, ses, google, googleCalendar, stripe, whatsapp
+      include deepseek, ses, google, googleCalendar, stripe, whatsapp
     }
 
     // Outermost deployment boundary. Everything Takodu runs lives

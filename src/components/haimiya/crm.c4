@@ -1,15 +1,121 @@
 model {
 
   // === Components > takodu.haimiya > CRM =====================================
-  // Customer records with Decolecta-backed identity lookup.
+  // Customer Relationship Management context: directory, profiles, and attendance notes.
 
   extend takodu.haimiya {
-    crm = component 'CRM' {
+    crm = component 'CRM Context' {
       description '
-        Customer records with Decolecta-backed
-        identity lookup.
+        Bounded Context de CRM: directorio unificado de clientes,
+        fichas técnicas, historial de asistencias y registro de no-shows.
       '
       technology 'Spring Boot, Java 25'
+
+      // =========================================================================
+      // 1. INTERFACE LAYER (REST / DTOs / Assemblers / Inbound ACL Facade)
+      // =========================================================================
+      customerController = component 'Customer Controller' {
+        description 'Expone endpoints REST para mutación (crear, actualizar clientes) y consultas (búsqueda por teléfono, DNI o historial).'
+        technology 'Spring MVC (@RestController)'
+      }
+
+      crmContextFacade = component 'CrmContextFacade' {
+        description 'Interfaz pública de frontera consumida por Assistant y Scheduling.'
+        technology 'In-Process ACL Interface'
+      }
+
+      crmAssemblers = component 'CRM Assemblers' {
+        description 'Transforma Entidades y Value Objects a Request/Response DTOs y viceversa.'
+        technology 'Transform (Mappers & Assemblers)'
+      }
+
+      crmDtos = component 'Interface DTOs' {
+        description 'Records inmutables de frontera: CreateCustomerRequest, CustomerResponseDto.'
+        technology 'Java 25 Records (DTOs)'
+      }
+
+      // =========================================================================
+      // 2. APPLICATION LAYER (CQRS Services & Facade Implementation)
+      // =========================================================================
+      customerCommandService = component 'Customer Command Service' {
+        description 'Orquesta casos de uso de registro de clientes, actualización de notas y no-shows.'
+        technology 'Application Service (CustomerCommandServiceImpl.java)'
+      }
+
+      customerQueryService = component 'Customer Query Service' {
+        description 'Orquesta consultas de búsqueda de clientes por número telefónico o nombre.'
+        technology 'Application Service (CustomerQueryServiceImpl.java)'
+      }
+
+      crmContextFacadeImpl = component 'CrmContextFacadeImpl' {
+        description 'Implementación de la fachada que resuelve datos del cliente para WhatsApp/Assistant.'
+        technology 'Application Service (CrmContextFacadeImpl.java)'
+      }
+
+      // =========================================================================
+      // 3. DOMAIN LAYER (Aggregates, Commands, Queries, Value Objects & Events)
+      // =========================================================================
+      customerAggregates = component 'Customer Aggregate' {
+        description 'Entidades de dominio: Customer (Aggregate Root), MedicalNotes, AttendanceHistory.'
+        technology 'Domain Model (Java 25 Records & Entities)'
+      }
+
+      customerCommands = component 'Customer Commands' {
+        description 'Commands: CreateCustomerCommand, UpdateCustomerNotesCommand, RecordNoShowCommand.'
+        technology 'Java 25 Records'
+      }
+
+      customerQueries = component 'Customer Queries' {
+        description 'Queries: FindCustomerByPhoneQuery, SearchCustomersQuery, GetCustomerHistoryQuery.'
+        technology 'Java 25 Records'
+      }
+
+      customerValueObjects = component 'Customer Value Objects' {
+        description 'Value Objects: PhoneNumber, DocumentId (DNI), CustomerStats.'
+        technology 'Domain Model (Value Objects)'
+      }
+
+      customerDomainEvents = component 'Customer Domain Events' {
+        description 'Events: CustomerCreatedEvent, CustomerNoShowRecordedEvent.'
+        technology 'Domain Events'
+      }
+
+      // =========================================================================
+      // 4. INFRASTRUCTURE LAYER (Persistence, Adapters)
+      // =========================================================================
+      customerRepository = component 'Customer Repository' {
+        description 'Persistencia y búsquedas indexadas de clientes en PostgreSQL.'
+        technology 'Spring Data JPA (CustomerRepository.java)'
+      }
     }
   }
+
+  // ===========================================================================
+  // RELACIONES Y FLUJO INTERNO (DDD)
+  // ===========================================================================
+
+  // 1. Controladores -> Assemblers & DTOs
+  takodu.haimiya.crm.customerController -> takodu.haimiya.crm.crmAssemblers 'Transforma Request/Response con' 'Llamada interna'
+  takodu.haimiya.crm.crmAssemblers -> takodu.haimiya.crm.crmDtos 'Genera DTOs de' 'Referencia'
+
+  // 2. Controladores / Facades -> Aplicación
+  takodu.haimiya.crm.customerController -> takodu.haimiya.crm.customerCommandService 'Ejecuta comandos en' 'Llamada interna'
+  takodu.haimiya.crm.customerController -> takodu.haimiya.crm.customerQueryService 'Ejecuta consultas en' 'Llamada interna'
+  takodu.haimiya.crm.crmContextFacade -> takodu.haimiya.crm.crmContextFacadeImpl 'Implementado por' 'Implementación'
+  takodu.haimiya.crm.crmContextFacadeImpl -> takodu.haimiya.crm.customerQueryService 'Consulta cliente por teléfono' 'Llamada interna'
+  takodu.haimiya.crm.crmContextFacadeImpl -> takodu.haimiya.crm.customerCommandService 'Auto-registra cliente desde WhatsApp' 'Llamada interna'
+
+  // 3. Aplicación -> Dominio
+  takodu.haimiya.crm.customerCommandService -> takodu.haimiya.crm.customerCommands 'Procesa commands de' 'Referencia'
+  takodu.haimiya.crm.customerQueryService -> takodu.haimiya.crm.customerQueries 'Procesa queries de' 'Referencia'
+  takodu.haimiya.crm.customerCommandService -> takodu.haimiya.crm.customerAggregates 'Ejecuta lógica de negocio sobre' 'Llamada a método'
+  takodu.haimiya.crm.customerAggregates -> takodu.haimiya.crm.customerValueObjects 'Contiene y valida' 'Referencia'
+  takodu.haimiya.crm.customerAggregates -> takodu.haimiya.crm.customerDomainEvents 'Publica eventos de dominio' 'Evento'
+
+  // 4. Aplicación -> Infraestructura
+  takodu.haimiya.crm.customerCommandService -> takodu.haimiya.crm.customerRepository 'Persiste cliente en' 'Llamada a método'
+  takodu.haimiya.crm.customerQueryService -> takodu.haimiya.crm.customerRepository 'Lee clientes en' 'Llamada a método'
+
+  // 5. Infraestructura -> Almacenamiento
+  takodu.haimiya.crm.customerRepository -> takodu.haimiyaDb 'Persiste/lee en tabla customers' 'JDBC / SQL'
 }

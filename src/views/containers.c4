@@ -37,7 +37,7 @@ views {
       deploy view, signalling that it is the edge reverse proxy of the
       self-hosted infrastructure. Haimiya is shown attached to every
       external system it integrates with (Google OAuth 2, DeepSeek,
-      Stripe, Decoleta, Amazon SES, WhatsApp Business). The frontend
+      Stripe, Amazon SES, WhatsApp Business). The frontend
       never reaches Haimiya directly: Gremory sends every business API
       call to Traefik, which terminates TLS and routes the request to
       Haimiya inside the platform. Gremory also reaches Google OAuth 2
@@ -50,7 +50,7 @@ views {
     '
     include owner, employer, consumer
     group 'External Services' {
-      include deepseek, decoleta, ses, google, googleCalendar, stripe, whatsapp
+      include deepseek, ses, google, googleCalendar, stripe, whatsapp
     }
 
     group 'Takodu Platform' {

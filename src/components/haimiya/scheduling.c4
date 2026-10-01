@@ -1,15 +1,150 @@
 model {
 
   // === Components > takodu.haimiya > Scheduling ==============================
-  // Appointment scheduling: availability, bookings, and lifecycle states.
+  // Appointment scheduling bounded context: availability, bookings, and lifecycle states.
 
   extend takodu.haimiya {
-    scheduling = component 'Scheduling' {
+    scheduling = component 'Scheduling Context' {
       description '
-        Appointment scheduling: availability, bookings,
-        and lifecycle states.
+        Bounded Context de Agendamiento: citas, bloqueo distribuido,
+        disponibilidad y sincronización de calendario.
       '
       technology 'Spring Boot, Java 25'
+
+      // =========================================================================
+      // 1. INTERFACE LAYER (REST / DTOs / Assemblers / Inbound ACL Facade)
+      // =========================================================================
+      appointmentController = component 'Appointment Controller' {
+        description 'Expone endpoints REST para mutación (Schedule, Reschedule, Cancel, Complete) y consultas (GetAppointments, GetAvailabilitySlots).'
+        technology 'Spring MVC (@RestController)'
+      }
+
+      schedulingContextFacade = component 'SchedulingContextFacade' {
+        description 'Interfaz pública de frontera consumida in-process por Assistant.'
+        technology 'In-Process ACL Interface'
+      }
+
+      schedulingAssemblers = component 'Scheduling Assemblers' {
+        description 'Transforma Entidades y Value Objects a Request/Response DTOs y viceversa.'
+        technology 'Transform (Mappers & Assemblers)'
+      }
+
+      schedulingDtos = component 'Interface DTOs' {
+        description 'Records inmutables de frontera: ScheduleAppointmentRequest, AppointmentResponseDto.'
+        technology 'Java 25 Records (DTOs)'
+      }
+
+      // =========================================================================
+      // 2. APPLICATION LAYER (CQRS Services & Facade Implementation)
+      // =========================================================================
+      appointmentCommandService = component 'Appointment Command Service' {
+        description 'Orquesta casos de uso de escritura, transacciones (@Transactional) y bloqueos distribuidos.'
+        technology 'Application Service (AppointmentCommandServiceImpl.java)'
+      }
+
+      appointmentQueryService = component 'Appointment Query Service' {
+        description 'Orquesta consultas de lectura y cálculo de slots libres para el calendario.'
+        technology 'Application Service (AppointmentQueryServiceImpl.java)'
+      }
+
+      schedulingContextFacadeImpl = component 'SchedulingContextFacadeImpl' {
+        description 'Implementación de la fachada que atiende consultas y agendamientos desde otros contextos.'
+        technology 'Application Service (SchedulingContextFacadeImpl.java)'
+      }
+
+      // =========================================================================
+      // 3. DOMAIN LAYER (Aggregates, Value Objects, Commands, Queries, Events)
+      // =========================================================================
+      appointmentAggregates = component 'Appointment Aggregate' {
+        description 'Entidades de dominio: Appointment (Aggregate Root), TimeSlot, BookingDeposit.'
+        technology 'Domain Model (Java 25 Records & Entities)'
+      }
+
+      schedulingCommands = component 'Scheduling Commands' {
+        description 'Commands: ScheduleAppointment, RescheduleAppointment, ConfirmDeposit, CancelAppointment.'
+        technology 'Domain Model (Commands)'
+      }
+
+      schedulingQueries = component 'Scheduling Queries' {
+        description 'Queries: GetAppointmentById, GetArtistAvailabilitySlots, GetStudioAppointments.'
+        technology 'Domain Model (Queries)'
+      }
+
+      schedulingValueObjects = component 'Scheduling Value Objects' {
+        description 'Value Objects: AppointmentStatus, TimeSlot, Duration, DepositAmount, CancellationReason.'
+        technology 'Domain Model (Value Objects)'
+      }
+
+      schedulingDomainEvents = component 'Scheduling Domain Events' {
+        description 'Events: AppointmentScheduled, AppointmentConfirmed, AppointmentRescheduled, AppointmentCancelled.'
+        technology 'Domain Events (Application Events)'
+      }
+
+      // =========================================================================
+      // 4. INFRASTRUCTURE LAYER (Persistence, Adapters, Outbound ACL Services)
+      // =========================================================================
+      scheduleRepository = component 'Schedule Repository' {
+        description 'Persistencia y consultas de citas con bloqueo pesimista en PostgreSQL.'
+        technology 'Spring Data JPA (ScheduleRepository.java)'
+      }
+
+      redisRedlockAdapter = component 'Redis Redlock Adapter' {
+        description 'Adquiere y libera locks distribuidos para evitar doble reserva concurrente.'
+        technology 'Infrastructure Adapter (Redlock / Lettuce)'
+      }
+
+      googleCalendarAdapter = component 'Google Calendar Sync Adapter' {
+        description 'Sincroniza citas confirmadas y bloqueos con Google Calendar vía OAuth2.'
+        technology 'Infrastructure Adapter (Google Calendar API Client)'
+      }
+
+      schedulingWorkforceAclService = component 'SchedulingWorkforceAclService' {
+        description 'Cliente outbound que consume WorkforceContextFacade.'
+        technology 'Outbound ACL Service'
+      }
+
+      schedulingCatalogAclService = component 'SchedulingCatalogAclService' {
+        description 'Cliente outbound que consume CatalogContextFacade.'
+        technology 'Outbound ACL Service'
+      }
     }
   }
+
+  // ===========================================================================
+  // RELACIONES Y FLUJO INTERNO (DDD - MONOLITO MODULAR)
+  // ===========================================================================
+
+  // 1. Controladores -> Assemblers & DTOs
+  takodu.haimiya.scheduling.appointmentController -> takodu.haimiya.scheduling.schedulingAssemblers 'Transforma Request/Response con' 'Llamada interna'
+  takodu.haimiya.scheduling.schedulingAssemblers -> takodu.haimiya.scheduling.schedulingDtos 'Genera DTOs de' 'Referencia'
+
+  // 2. Controladores / Facades -> Aplicación
+  takodu.haimiya.scheduling.appointmentController -> takodu.haimiya.scheduling.appointmentCommandService 'Ejecuta comandos en' 'Llamada interna'
+  takodu.haimiya.scheduling.appointmentController -> takodu.haimiya.scheduling.appointmentQueryService 'Ejecuta consultas en' 'Llamada interna'
+  takodu.haimiya.scheduling.schedulingContextFacade -> takodu.haimiya.scheduling.schedulingContextFacadeImpl 'Implementado por' 'Implementación'
+  takodu.haimiya.scheduling.schedulingContextFacadeImpl -> takodu.haimiya.scheduling.appointmentCommandService 'Invoca agendamiento' 'Llamada interna'
+  takodu.haimiya.scheduling.schedulingContextFacadeImpl -> takodu.haimiya.scheduling.appointmentQueryService 'Consulta disponibilidad' 'Llamada interna'
+
+  // 3. Aplicación -> Dominio (Commands, Queries, Aggregates, Events)
+  takodu.haimiya.scheduling.appointmentCommandService -> takodu.haimiya.scheduling.schedulingCommands 'Procesa commands de' 'Referencia'
+  takodu.haimiya.scheduling.appointmentQueryService -> takodu.haimiya.scheduling.schedulingQueries 'Procesa queries de' 'Referencia'
+  takodu.haimiya.scheduling.appointmentCommandService -> takodu.haimiya.scheduling.appointmentAggregates 'Ejecuta lógica de negocio sobre' 'Llamada a método'
+  takodu.haimiya.scheduling.appointmentAggregates -> takodu.haimiya.scheduling.schedulingValueObjects 'Contiene y valida' 'Referencia'
+  takodu.haimiya.scheduling.appointmentAggregates -> takodu.haimiya.scheduling.schedulingDomainEvents 'Publica eventos de dominio' 'Evento'
+
+  // 4. Aplicación -> Infraestructura / Outbound ACLs
+  takodu.haimiya.scheduling.appointmentCommandService -> takodu.haimiya.scheduling.redisRedlockAdapter 'Adquiere/libera lock distribuido en' 'Llamada a método'
+  takodu.haimiya.scheduling.appointmentCommandService -> takodu.haimiya.scheduling.scheduleRepository 'Persiste agregado Appointment en' 'Llamada a método'
+  takodu.haimiya.scheduling.appointmentCommandService -> takodu.haimiya.scheduling.googleCalendarAdapter 'Sincroniza cita en' 'Llamada a método'
+  takodu.haimiya.scheduling.appointmentCommandService -> takodu.haimiya.scheduling.schedulingCatalogAclService 'Obtiene precio y duración con' 'Llamada a método'
+  takodu.haimiya.scheduling.appointmentCommandService -> takodu.haimiya.scheduling.schedulingWorkforceAclService 'Valida turnos y personal activo con' 'Llamada a método'
+
+  takodu.haimiya.scheduling.appointmentQueryService -> takodu.haimiya.scheduling.scheduleRepository 'Lee datos y citas ocupadas en' 'Llamada a método'
+  takodu.haimiya.scheduling.appointmentQueryService -> takodu.haimiya.scheduling.schedulingWorkforceAclService 'Consulta turnos de especialistas con' 'Llamada a método'
+  takodu.haimiya.scheduling.appointmentQueryService -> takodu.haimiya.scheduling.schedulingCatalogAclService 'Consulta duración y holguras con' 'Llamada a método'
+
+  // 5. Infraestructura -> Almacenamiento y Externos
+  takodu.haimiya.scheduling.scheduleRepository -> takodu.haimiyaDb 'Persiste/lee en tabla appointments' 'JDBC / SQL'
+  takodu.haimiya.scheduling.redisRedlockAdapter -> takodu.cache 'Adquiere locks atómicos con TTL' 'RESP / Redis'
+  takodu.haimiya.scheduling.googleCalendarAdapter -> googleCalendar 'Crea/actualiza eventos en' 'HTTPS / REST'
 }

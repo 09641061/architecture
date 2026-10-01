@@ -1,15 +1,126 @@
 model {
 
   // === Components > takodu.haimiya > Business ================================
-  // MYPE tenant management: organizations and establishments.
+  // Business bounded context: organization profile, establishments, and access gating.
 
   extend takodu.haimiya {
-    business = component 'Business' {
+    business = component 'Business Context' {
       description '
-        MYPE tenant management: organizations
-        and establishments.
+        Bounded Context de Negocio y Organización: gestión de tenant,
+        sedes comerciales físicas y control de acceso ligado a la suscripción activa.
       '
       technology 'Spring Boot, Java 25'
+
+      // =========================================================================
+      // 1. INTERFACE LAYER (REST / DTOs / Assemblers / Inbound ACL Facade)
+      // =========================================================================
+      businessController = component 'Business Controller' {
+        description 'Expone endpoints REST para mutación (organizaciones, sedes) y consultas de información del negocio.'
+        technology 'Spring MVC (@RestController)'
+      }
+
+      businessContextFacade = component 'BusinessContextFacade' {
+        description 'Interfaz pública de frontera consumida por Assistant, Scheduling y CRM.'
+        technology 'In-Process ACL Interface'
+      }
+
+      businessAssemblers = component 'Business Assemblers' {
+        description 'Transforma Entidades y Value Objects a Request/Response DTOs y viceversa.'
+        technology 'Transform (Mappers & Assemblers)'
+      }
+
+      businessDtos = component 'Interface DTOs' {
+        description 'Records inmutables de frontera: CreateOrganizationRequest, EstablishmentResponseDto.'
+        technology 'Java 25 Records (DTOs)'
+      }
+
+      // =========================================================================
+      // 2. APPLICATION LAYER (CQRS Services & Facade Implementation)
+      // =========================================================================
+      businessCommandService = component 'Business Command Service' {
+        description 'Orquesta creación de organización tras pago y habilitación/revocación de accesos.'
+        technology 'Application Service (BusinessCommandServiceImpl.java)'
+      }
+
+      businessQueryService = component 'Business Query Service' {
+        description 'Orquesta consultas de perfil del negocio y configuración de sedes.'
+        technology 'Application Service (BusinessQueryServiceImpl.java)'
+      }
+
+      businessContextFacadeImpl = component 'BusinessContextFacadeImpl' {
+        description 'Implementación de la fachada que resuelve datos de la sede y aislamiento multitenant.'
+        technology 'Application Service (BusinessContextFacadeImpl.java)'
+      }
+
+      // =========================================================================
+      // 3. DOMAIN LAYER (Aggregates, Commands, Queries, Value Objects & Events)
+      // =========================================================================
+      businessAggregates = component 'Business Aggregate' {
+        description 'Entidades de dominio: Organization (Aggregate Root), Establishment.'
+        technology 'Domain Model (Java 25 Records & Entities)'
+      }
+
+      businessCommands = component 'Business Commands' {
+        description 'Commands: CreateOrganizationCommand, AddEstablishmentCommand, SuspendBusinessCommand.'
+        technology 'Java 25 Records'
+      }
+
+      businessQueries = component 'Business Queries' {
+        description 'Queries: GetOrganizationProfileQuery, ListEstablishmentsQuery.'
+        technology 'Java 25 Records'
+      }
+
+      businessValueObjects = component 'Business Value Objects' {
+        description 'Value Objects: Ruc, Address, BusinessStatus, Timezone.'
+        technology 'Domain Model (Value Objects)'
+      }
+
+      businessDomainEvents = component 'Business Domain Events' {
+        description 'Events: OrganizationCreatedEvent, EstablishmentAddedEvent, BusinessSuspendedEvent.'
+        technology 'Domain Events'
+      }
+
+      // =========================================================================
+      // 4. INFRASTRUCTURE LAYER (Persistence, Outbound ACL Services)
+      // =========================================================================
+      businessRepository = component 'Business Repository' {
+        description 'Persistencia JPA de organizaciones y sedes en PostgreSQL.'
+        technology 'Spring Data JPA (BusinessRepository.java)'
+      }
+
+      businessBillingAclService = component 'BusinessBillingAclService' {
+        description 'Cliente outbound que consume BillingContextFacade para verificar pagos.'
+        technology 'Outbound ACL Service'
+      }
     }
   }
+
+  // ===========================================================================
+  // RELACIONES Y FLUJO INTERNO (DDD)
+  // ===========================================================================
+
+  // 1. Controladores -> Assemblers & DTOs
+  takodu.haimiya.business.businessController -> takodu.haimiya.business.businessAssemblers 'Transforma Request/Response con' 'Llamada interna'
+  takodu.haimiya.business.businessAssemblers -> takodu.haimiya.business.businessDtos 'Genera DTOs de' 'Referencia'
+
+  // 2. Controladores / Facades -> Aplicación
+  takodu.haimiya.business.businessController -> takodu.haimiya.business.businessCommandService 'Ejecuta comandos en' 'Llamada interna'
+  takodu.haimiya.business.businessController -> takodu.haimiya.business.businessQueryService 'Ejecuta consultas en' 'Llamada interna'
+  takodu.haimiya.business.businessContextFacade -> takodu.haimiya.business.businessContextFacadeImpl 'Implementado por' 'Implementación'
+  takodu.haimiya.business.businessContextFacadeImpl -> takodu.haimiya.business.businessQueryService 'Consulta datos de sede' 'Llamada interna'
+
+  // 3. Aplicación -> Dominio
+  takodu.haimiya.business.businessCommandService -> takodu.haimiya.business.businessCommands 'Procesa commands de' 'Referencia'
+  takodu.haimiya.business.businessQueryService -> takodu.haimiya.business.businessQueries 'Procesa queries de' 'Referencia'
+  takodu.haimiya.business.businessCommandService -> takodu.haimiya.business.businessAggregates 'Ejecuta lógica de negocio sobre' 'Llamada a método'
+  takodu.haimiya.business.businessAggregates -> takodu.haimiya.business.businessValueObjects 'Contiene y valida' 'Referencia'
+  takodu.haimiya.business.businessAggregates -> takodu.haimiya.business.businessDomainEvents 'Publica eventos de dominio' 'Evento'
+
+  // 4. Aplicación -> Infraestructura
+  takodu.haimiya.business.businessCommandService -> takodu.haimiya.business.businessRepository 'Persiste organización y sedes en' 'Llamada a método'
+  takodu.haimiya.business.businessCommandService -> takodu.haimiya.business.businessBillingAclService 'Verifica vigencia de suscripción con' 'Llamada a método'
+  takodu.haimiya.business.businessQueryService -> takodu.haimiya.business.businessRepository 'Lee datos de sedes en' 'Llamada a método'
+
+  // 5. Infraestructura -> Almacenamiento
+  takodu.haimiya.business.businessRepository -> takodu.haimiyaDb 'Persiste/lee en tablas organizations y establishments' 'JDBC / SQL'
 }

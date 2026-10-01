@@ -1,15 +1,133 @@
 model {
 
   // === Components > takodu.haimiya > Workforce ===============================
-  // Staff, roles, permissions, and Redis-backed invitation tokens.
+  // Workforce bounded context: staff, roles, schedules, and Google OAuth.
 
   extend takodu.haimiya {
-    workforce = component 'Workforce' {
+    workforce = component 'Workforce Context' {
       description '
-        Staff, roles, permissions,
-        and Redis-backed invitation tokens.
+        Bounded Context de Fuerza Laboral: colaboradores, especialistas,
+        roles y permisos, horarios de atención y sincronización de cuenta Google.
       '
       technology 'Spring Boot, Java 25'
+
+      // =========================================================================
+      // 1. INTERFACE LAYER (REST / DTOs / Assemblers / Inbound ACL Facade)
+      // =========================================================================
+      workforceController = component 'Workforce Controller' {
+        description 'Expone endpoints REST para mutación (invitar colaboradores, asignar roles, configurar horarios) y consultas de especialistas y turnos.'
+        technology 'Spring MVC (@RestController)'
+      }
+
+      workforceContextFacade = component 'WorkforceContextFacade' {
+        description 'Interfaz pública de frontera consumida por Scheduling, Catalog y Business.'
+        technology 'In-Process ACL Interface'
+      }
+
+      workforceAssemblers = component 'Workforce Assemblers' {
+        description 'Transforma Entidades y Value Objects a Request/Response DTOs y viceversa.'
+        technology 'Transform (Mappers & Assemblers)'
+      }
+
+      workforceDtos = component 'Interface DTOs' {
+        description 'Records inmutables de frontera: InviteMemberRequest, MemberResponseDto, ScheduleDto.'
+        technology 'Java 25 Records (DTOs)'
+      }
+
+      // =========================================================================
+      // 2. APPLICATION LAYER (CQRS Services & Facade Implementation)
+      // =========================================================================
+      workforceCommandService = component 'Workforce Command Service' {
+        description 'Orquesta casos de uso de gestión de colaboradores, bajas y turnos.'
+        technology 'Application Service (WorkforceCommandServiceImpl.java)'
+      }
+
+      workforceQueryService = component 'Workforce Query Service' {
+        description 'Orquesta consultas de miembros del equipo y horarios disponibles.'
+        technology 'Application Service (WorkforceQueryServiceImpl.java)'
+      }
+
+      workforceContextFacadeImpl = component 'WorkforceContextFacadeImpl' {
+        description 'Implementación de la fachada que expone turnos y estado de colaboradores.'
+        technology 'Application Service (WorkforceContextFacadeImpl.java)'
+      }
+
+      // =========================================================================
+      // 3. DOMAIN LAYER (Aggregates, Commands, Queries, Value Objects & Events)
+      // =========================================================================
+      workforceAggregates = component 'Domain Aggregates' {
+        description 'Agregados Member, Role e Invitation: reglas de pertenencia, permisos y estados.'
+        technology 'Domain Model (Member.java, Role.java, Invitation.java)'
+      }
+
+      workforceCommands = component 'Domain Commands' {
+        description 'Commands: InviteMemberCommand, AcceptInvitationCommand, UpdateScheduleCommand.'
+        technology 'Java 25 Records'
+      }
+
+      workforceQueries = component 'Domain Queries' {
+        description 'Queries: GetMembersByBusinessQuery, GetMemberScheduleQuery.'
+        technology 'Java 25 Records'
+      }
+
+      workforceValueObjects = component 'Domain Value Objects' {
+        description 'Value Objects: MemberStatus, InvitationStatus, Schedule, DayOfWeek.'
+        technology 'Domain Model (Value Objects)'
+      }
+
+      workforceDomainEvents = component 'Domain Events' {
+        description 'Events: MemberInvitedEvent, MemberJoinedEvent, ScheduleUpdatedEvent.'
+        technology 'Domain Events'
+      }
+
+      // =========================================================================
+      // 4. INFRASTRUCTURE LAYER (Persistence, Outbound ACL Services & Email)
+      // =========================================================================
+      workforceRepository = component 'Workforce Repository' {
+        description 'Persistencia JPA de miembros, invitaciones y horarios en PostgreSQL.'
+        technology 'Spring Data JPA (WorkforceRepository.java)'
+      }
+
+      workforceIamAclService = component 'WorkforceIamAclService' {
+        description 'Cliente outbound que consume IamContextFacade para validar cuentas de usuario.'
+        technology 'Outbound ACL Service'
+      }
+
+      amazonSesEmailAdapter = component 'Amazon SES Email Adapter' {
+        description 'Despacha correos electrónicos transaccionales de invitación con Amazon SES.'
+        technology 'HTTPS / REST Adapter'
+      }
     }
   }
+
+  // ===========================================================================
+  // RELACIONES Y FLUJO INTERNO (DDD)
+  // ===========================================================================
+
+  // 1. Controladores -> Assemblers & DTOs
+  takodu.haimiya.workforce.workforceController -> takodu.haimiya.workforce.workforceAssemblers 'Transforma Request/Response con' 'Llamada interna'
+  takodu.haimiya.workforce.workforceAssemblers -> takodu.haimiya.workforce.workforceDtos 'Genera DTOs de' 'Referencia'
+
+  // 2. Controladores / Facades -> Aplicación
+  takodu.haimiya.workforce.workforceController -> takodu.haimiya.workforce.workforceCommandService 'Ejecuta comandos en' 'Llamada interna'
+  takodu.haimiya.workforce.workforceController -> takodu.haimiya.workforce.workforceQueryService 'Ejecuta consultas en' 'Llamada interna'
+  takodu.haimiya.workforce.workforceContextFacade -> takodu.haimiya.workforce.workforceContextFacadeImpl 'Implementado por' 'Implementación'
+  takodu.haimiya.workforce.workforceContextFacadeImpl -> takodu.haimiya.workforce.workforceQueryService 'Consulta disponibilidad y estado' 'Llamada interna'
+
+  // 3. Aplicación -> Dominio
+  takodu.haimiya.workforce.workforceCommandService -> takodu.haimiya.workforce.workforceCommands 'Procesa commands de' 'Referencia'
+  takodu.haimiya.workforce.workforceQueryService -> takodu.haimiya.workforce.workforceQueries 'Procesa queries de' 'Referencia'
+  takodu.haimiya.workforce.workforceCommandService -> takodu.haimiya.workforce.workforceAggregates 'Ejecuta lógica de negocio sobre' 'Llamada a método'
+  takodu.haimiya.workforce.workforceAggregates -> takodu.haimiya.workforce.workforceValueObjects 'Contiene y valida' 'Referencia'
+  takodu.haimiya.workforce.workforceAggregates -> takodu.haimiya.workforce.workforceDomainEvents 'Publica eventos de dominio' 'Evento'
+
+  // 4. Aplicación -> Infraestructura
+  takodu.haimiya.workforce.workforceCommandService -> takodu.haimiya.workforce.workforceRepository 'Persiste miembros y roles en' 'Llamada a método'
+  takodu.haimiya.workforce.workforceCommandService -> takodu.haimiya.workforce.workforceIamAclService 'Verifica cuenta IAM con' 'Llamada a método'
+  takodu.haimiya.workforce.workforceCommandService -> takodu.haimiya.workforce.amazonSesEmailAdapter 'Envía invitación por correo con' 'Llamada a método'
+  takodu.haimiya.workforce.workforceQueryService -> takodu.haimiya.workforce.workforceRepository 'Lee personal y horarios en' 'Llamada a método'
+
+  // 5. Infraestructura -> Almacenamiento y Externos
+  takodu.haimiya.workforce.workforceRepository -> takodu.haimiyaDb 'Persiste/lee en tablas members, roles y schedules' 'JDBC / SQL'
+  takodu.haimiya.workforce.amazonSesEmailAdapter -> ses 'Despacha correos vía' 'HTTPS / REST'
 }

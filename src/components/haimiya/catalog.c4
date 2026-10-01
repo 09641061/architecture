@@ -1,15 +1,126 @@
 model {
 
   // === Components > takodu.haimiya > Catalog =================================
-  // Services catalog: offerings, durations, and pricing.
+  // Catalog bounded context: services, categories, buffer times, and pricing.
 
   extend takodu.haimiya {
-    catalog = component 'Catalog' {
+    catalog = component 'Catalog Context' {
       description '
-        Services catalog: offerings, durations,
-        and pricing.
+        Bounded Context de Catálogo: administración de servicios,
+        categorías comerciales, duraciones, tiempos de holgura y tarifas en Soles.
       '
       technology 'Spring Boot, Java 25'
+
+      // =========================================================================
+      // 1. INTERFACE LAYER (REST / DTOs / Assemblers / Inbound ACL Facade)
+      // =========================================================================
+      catalogController = component 'Catalog Controller' {
+        description 'Expone endpoints REST para mutación (CreateService, UpdateService, DeleteService) y consultas (GetServices, GetServiceById, GetCategories).'
+        technology 'Spring MVC (@RestController)'
+      }
+
+      catalogContextFacade = component 'CatalogContextFacade' {
+        description 'Interfaz pública de frontera consumida por Scheduling, Assistant y Analytics.'
+        technology 'In-Process ACL Interface'
+      }
+
+      catalogAssemblers = component 'Catalog Assemblers' {
+        description 'Transforma Entidades y Value Objects a Request/Response DTOs y viceversa.'
+        technology 'Transform (Mappers & Assemblers)'
+      }
+
+      catalogDtos = component 'Interface DTOs' {
+        description 'Records inmutables de frontera: CreateServiceRequest, ServiceResponseDto, CategoryResponseDto.'
+        technology 'Java 25 Records (DTOs)'
+      }
+
+      // =========================================================================
+      // 2. APPLICATION LAYER (CQRS Services & Facade Implementation)
+      // =========================================================================
+      catalogCommandService = component 'Catalog Command Service' {
+        description 'Orquesta casos de uso de escritura para creación, actualización y baja de servicios.'
+        technology 'Application Service (CatalogCommandServiceImpl.java)'
+      }
+
+      catalogQueryService = component 'Catalog Query Service' {
+        description 'Orquesta consultas de lectura y filtrado del catálogo de servicios y categorías.'
+        technology 'Application Service (CatalogQueryServiceImpl.java)'
+      }
+
+      catalogContextFacadeImpl = component 'CatalogContextFacadeImpl' {
+        description 'Implementación de la fachada que expone precios, duraciones y holguras a otros contextos.'
+        technology 'Application Service (CatalogContextFacadeImpl.java)'
+      }
+
+      // =========================================================================
+      // 3. DOMAIN LAYER (Aggregates, Value Objects, Commands, Queries, Events)
+      // =========================================================================
+      catalogAggregates = component 'Catalog Aggregate' {
+        description 'Entidades de dominio: Service (Aggregate Root), ServiceCategory (Entity).'
+        technology 'Domain Model (Java 25 Records & Entities)'
+      }
+
+      catalogCommands = component 'Catalog Commands' {
+        description 'Commands: CreateService, UpdateService, DeactivateService, AssignCategory.'
+        technology 'Domain Model (Commands)'
+      }
+
+      catalogQueries = component 'Catalog Queries' {
+        description 'Queries: GetServicesByBusiness, GetServiceDetails, ListCategories.'
+        technology 'Domain Model (Queries)'
+      }
+
+      catalogValueObjects = component 'Catalog Value Objects' {
+        description 'Value Objects: ServicePrice (Money), ServiceDuration, BufferTime, ServiceStatus.'
+        technology 'Domain Model (Value Objects)'
+      }
+
+      catalogDomainEvents = component 'Catalog Domain Events' {
+        description 'Events: ServiceCreated, ServicePriceChanged, ServiceDeactivated.'
+        technology 'Domain Events (Application Events)'
+      }
+
+      // =========================================================================
+      // 4. INFRASTRUCTURE LAYER (Persistence, Outbound ACL Services)
+      // =========================================================================
+      catalogRepository = component 'Catalog Repository' {
+        description 'Persistencia y consultas JPA de servicios y categorías sobre PostgreSQL.'
+        technology 'Spring Data JPA (CatalogRepository.java)'
+      }
+
+      catalogWorkforceAclService = component 'CatalogWorkforceAclService' {
+        description 'Cliente outbound que consume WorkforceContextFacade para validar especialistas asignables.'
+        technology 'Outbound ACL Service'
+      }
     }
   }
+
+  // ===========================================================================
+  // RELACIONES Y FLUJO INTERNO (DDD)
+  // ===========================================================================
+
+  // 1. Controladores -> Assemblers & DTOs
+  takodu.haimiya.catalog.catalogController -> takodu.haimiya.catalog.catalogAssemblers 'Transforma Request/Response con' 'Llamada interna'
+  takodu.haimiya.catalog.catalogAssemblers -> takodu.haimiya.catalog.catalogDtos 'Genera DTOs de' 'Referencia'
+
+  // 2. Controladores / Facades -> Aplicación
+  takodu.haimiya.catalog.catalogController -> takodu.haimiya.catalog.catalogCommandService 'Ejecuta comandos en' 'Llamada interna'
+  takodu.haimiya.catalog.catalogController -> takodu.haimiya.catalog.catalogQueryService 'Ejecuta consultas en' 'Llamada interna'
+  takodu.haimiya.catalog.catalogContextFacade -> takodu.haimiya.catalog.catalogContextFacadeImpl 'Implementado por' 'Implementación'
+  takodu.haimiya.catalog.catalogContextFacadeImpl -> takodu.haimiya.catalog.catalogQueryService 'Consulta datos de servicios' 'Llamada interna'
+
+  // 3. Aplicación -> Dominio
+  takodu.haimiya.catalog.catalogCommandService -> takodu.haimiya.catalog.catalogCommands 'Procesa commands de' 'Referencia'
+  takodu.haimiya.catalog.catalogQueryService -> takodu.haimiya.catalog.catalogQueries 'Procesa queries de' 'Referencia'
+  takodu.haimiya.catalog.catalogCommandService -> takodu.haimiya.catalog.catalogAggregates 'Ejecuta lógica de negocio sobre' 'Llamada a método'
+  takodu.haimiya.catalog.catalogAggregates -> takodu.haimiya.catalog.catalogValueObjects 'Contiene y valida' 'Referencia'
+  takodu.haimiya.catalog.catalogAggregates -> takodu.haimiya.catalog.catalogDomainEvents 'Publica eventos de dominio' 'Evento'
+
+  // 4. Aplicación -> Infraestructura / Outbound ACLs
+  takodu.haimiya.catalog.catalogCommandService -> takodu.haimiya.catalog.catalogRepository 'Persiste servicios y categorías en' 'Llamada a método'
+  takodu.haimiya.catalog.catalogCommandService -> takodu.haimiya.catalog.catalogWorkforceAclService 'Valida especialidad del personal con' 'Llamada a método'
+  takodu.haimiya.catalog.catalogQueryService -> takodu.haimiya.catalog.catalogRepository 'Lee catálogo en' 'Llamada a método'
+
+  // 5. Infraestructura -> Almacenamiento
+  takodu.haimiya.catalog.catalogRepository -> takodu.haimiyaDb 'Persiste/lee en tablas services y categories' 'JDBC / SQL'
 }
