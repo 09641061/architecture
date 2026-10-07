@@ -1,15 +1,121 @@
 model {
 
   // === Components > takodu.haimiya > IAM =====================================
-  // Identity, authentication, and session management.
+  // Identity & Access Management: registration, email verification, JWT sessions, ISO 27001 policies.
 
   extend takodu.haimiya {
-    iam = component 'IAM' {
+    iam = component 'IAM Context' {
       description '
-        Identity, authentication, and session management.
-        Supports Google OAuth and email sign-in.
+        Bounded Context de Identidad y Acceso: autenticación segura,
+        registro con verificación de correo por Amazon SES, sesiones JWT y políticas ISO 27001.
       '
-      technology 'Spring Boot, Java 25'
+      technology 'Spring Boot, Java 25, Spring Security'
+
+      // =========================================================================
+      // 1. INTERFACE LAYER (REST / DTOs / Assemblers / Inbound ACL Facade)
+      // =========================================================================
+      authController = component 'Auth Controller' {
+        description 'Expone endpoints REST para Register, VerifyEmail, LogIn, LogOut y verificación de sesión.'
+        technology 'Spring MVC (@RestController)'
+      }
+
+      iamContextFacade = component 'IamContextFacade' {
+        description 'Interfaz pública de frontera consumida por Workforce, Business y Billing.'
+        technology 'In-Process ACL Interface'
+      }
+
+      iamAssemblers = component 'IAM Assemblers' {
+        description 'Transforma credenciales y usuarios a Request/Response DTOs y viceversa.'
+        technology 'Transform (Mappers & Assemblers)'
+      }
+
+      iamDtos = component 'Interface DTOs' {
+        description 'Records inmutables de frontera: RegisterRequest, LoginRequest, AuthResponseDto.'
+        technology 'Java 25 Records (DTOs)'
+      }
+
+      // =========================================================================
+      // 2. APPLICATION LAYER (CQRS Services & Facade Implementation)
+      // =========================================================================
+      authCommandService = component 'Auth Command Service' {
+        description 'Orquesta registro, verificación de tokens, emisión de JWT y cierre de sesión.'
+        technology 'Application Service (AuthCommandServiceImpl.java)'
+      }
+
+      iamContextFacadeImpl = component 'IamContextFacadeImpl' {
+        description 'Implementación de la fachada que valida identidades y roles de usuario.'
+        technology 'Application Service (IamContextFacadeImpl.java)'
+      }
+
+      // =========================================================================
+      // 3. DOMAIN LAYER (Aggregates, Commands, Value Objects & Events)
+      // =========================================================================
+      userAggregates = component 'Domain Aggregates' {
+        description 'Agregado User: credenciales encriptadas (BCrypt), estado de verificación y políticas de contraseña.'
+        technology 'Domain Model (User.java, VerificationToken.java)'
+      }
+
+      iamCommands = component 'Domain Commands' {
+        description 'Commands: RegisterUserCommand, VerifyEmailCommand, AuthenticateUserCommand.'
+        technology 'Java 25 Records'
+      }
+
+      iamValueObjects = component 'Domain Value Objects' {
+        description 'Value Objects: Email, PasswordHash, VerificationStatus, JwtToken, Role.'
+        technology 'Domain Model (Value Objects)'
+      }
+
+      iamDomainEvents = component 'Domain Events' {
+        description 'Events: UserRegisteredEvent, EmailVerifiedEvent, UserAuthenticatedEvent.'
+        technology 'Domain Events'
+      }
+
+      // =========================================================================
+      // 4. INFRASTRUCTURE LAYER (Persistence, Session Cache & Email)
+      // =========================================================================
+      userRepository = component 'User Repository' {
+        description 'Persistencia JPA de credenciales de usuarios en PostgreSQL.'
+        technology 'Spring Data JPA (UserRepository.java)'
+      }
+
+      redisSessionAdapter = component 'Redis Session Adapter' {
+        description 'Almacena tokens de sesión y listas negras de revocación en Redis.'
+        technology 'RESP / Redis'
+      }
+
+      amazonSesVerificationAdapter = component 'Amazon SES Verification Adapter' {
+        description 'Despacha correos con enlaces seguros de verificación mediante Amazon SES.'
+        technology 'HTTPS / REST Adapter'
+      }
     }
   }
+
+  // ===========================================================================
+  // RELACIONES Y FLUJO INTERNO (DDD)
+  // ===========================================================================
+
+  // 1. Controladores -> Assemblers & DTOs
+  takodu.haimiya.iam.authController -> takodu.haimiya.iam.iamAssemblers 'Transforma Request/Response con' 'Llamada interna'
+  takodu.haimiya.iam.iamAssemblers -> takodu.haimiya.iam.iamDtos 'Genera DTOs de' 'Referencia'
+
+  // 2. Controladores / Facades -> Aplicación
+  takodu.haimiya.iam.authController -> takodu.haimiya.iam.authCommandService 'Ejecuta comandos de autenticación en' 'Llamada interna'
+  takodu.haimiya.iam.iamContextFacade -> takodu.haimiya.iam.iamContextFacadeImpl 'Implementado por' 'Implementación'
+  takodu.haimiya.iam.iamContextFacadeImpl -> takodu.haimiya.iam.authCommandService 'Valida credenciales y permisos' 'Llamada interna'
+
+  // 3. Aplicación -> Dominio
+  takodu.haimiya.iam.authCommandService -> takodu.haimiya.iam.iamCommands 'Procesa commands de' 'Referencia'
+  takodu.haimiya.iam.authCommandService -> takodu.haimiya.iam.userAggregates 'Ejecuta lógica de autenticación sobre' 'Llamada a método'
+  takodu.haimiya.iam.userAggregates -> takodu.haimiya.iam.iamValueObjects 'Contiene y valida' 'Referencia'
+  takodu.haimiya.iam.userAggregates -> takodu.haimiya.iam.iamDomainEvents 'Publica eventos de dominio' 'Evento'
+
+  // 4. Aplicación -> Infraestructura
+  takodu.haimiya.iam.authCommandService -> takodu.haimiya.iam.userRepository 'Persiste usuario en' 'Llamada a método'
+  takodu.haimiya.iam.authCommandService -> takodu.haimiya.iam.redisSessionAdapter 'Registra sesión activa en' 'Llamada a método'
+  takodu.haimiya.iam.authCommandService -> takodu.haimiya.iam.amazonSesVerificationAdapter 'Envía token de verificación con' 'Llamada a método'
+
+  // 5. Infraestructura -> Almacenamiento y Externos
+  takodu.haimiya.iam.userRepository -> takodu.haimiyaDb 'Persiste/lee en tabla users' 'JDBC / SQL'
+  takodu.haimiya.iam.redisSessionAdapter -> takodu.cache 'Almacena tokens y TTL' 'RESP / Redis'
+  takodu.haimiya.iam.amazonSesVerificationAdapter -> ses 'Despacha correos vía' 'HTTPS / REST'
 }

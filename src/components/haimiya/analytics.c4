@@ -1,16 +1,102 @@
 model {
 
   // === Components > takodu.haimiya > Analytics ===============================
-  // Reports and KPIs. Gates plan access through billing ACL.
+  // Analytics bounded context: metrics aggregation, reports, and AI executive summaries.
 
   extend takodu.haimiya {
-    analytics = component 'Analytics' {
+    analytics = component 'Analytics Context' {
       description '
-        Reports and KPIs. Reads operational data via
-        dedicated read repositories and gates plan access
-        through billing ACL.
+        Bounded Context de Analíticas y Reportes: tasas de ocupación,
+        ingresos recuperados 24/7 y síntesis ejecutiva asistida por DeepSeek.
       '
       technology 'Spring Boot, Java 25'
+
+      // =========================================================================
+      // 1. INTERFACE LAYER (REST / DTOs / Assemblers)
+      // =========================================================================
+      analyticsController = component 'Analytics Controller' {
+        description 'Expone endpoints REST para dashboards de ocupación, ingresos y reportes con IA.'
+        technology 'Spring MVC (@RestController)'
+      }
+
+      analyticsAssemblers = component 'Analytics Assemblers' {
+        description 'Transforma agregaciones y proyecciones analíticas a Response DTOs.'
+        technology 'Transform (Mappers & Assemblers)'
+      }
+
+      analyticsDtos = component 'Interface DTOs' {
+        description 'Records inmutables de frontera: DashboardMetricsDto, RevenueReportDto, AiSummaryDto.'
+        technology 'Java 25 Records (DTOs)'
+      }
+
+      // =========================================================================
+      // 2. APPLICATION LAYER (CQRS Query Services & Event Listeners)
+      // =========================================================================
+      analyticsQueryService = component 'Analytics Query Service' {
+        description 'Orquesta agregaciones temporales, cálculo de horas pico y resúmenes con IA.'
+        technology 'Application Service (AnalyticsQueryServiceImpl.java)'
+      }
+
+      appointmentAnalyticsListener = component 'Appointment Analytics Listener' {
+        description 'Escucha eventos asíncronos de Scheduling para actualizar proyecciones de aforo.'
+        technology 'Spring ApplicationListener'
+      }
+
+      // =========================================================================
+      // 3. DOMAIN LAYER (Read Models, Queries, Value Objects)
+      // =========================================================================
+      analyticsReadModels = component 'Domain Read Models' {
+        description 'Modelos de lectura optimizados: OccupancyMetric, RecoveredRevenue, PeakHourDistribution.'
+        technology 'Domain Model (ReadModels.java)'
+      }
+
+      analyticsQueries = component 'Domain Queries' {
+        description 'Queries: GetOccupancyStatsQuery, GetRecoveredRevenueQuery, GenerateAiSummaryQuery.'
+        technology 'Java 25 Records'
+      }
+
+      analyticsValueObjects = component 'Domain Value Objects' {
+        description 'Value Objects: DateRange, MetricPercentage, CurrencyAmount.'
+        technology 'Java 25 Records'
+      }
+
+      // =========================================================================
+      // 4. INFRASTRUCTURE / OUTBOUND SERVICES (Persistence & AI Client)
+      // =========================================================================
+      analyticsReadRepository = component 'Analytics Read Repository' {
+        description 'Consultas optimizadas y vistas materializadas en PostgreSQL.'
+        technology 'Spring Data JPA (AnalyticsRepository.java)'
+      }
+
+      deepSeekAiClient = component 'DeepSeek AI Client' {
+        description 'Cliente HTTP que envía métricas al LLM DeepSeek para redactar resúmenes ejecutivos.'
+        technology 'HTTPS / REST Adapter'
+      }
     }
   }
+
+  // ===========================================================================
+  // RELACIONES Y FLUJO INTERNO (DDD)
+  // ===========================================================================
+
+  // 1. Controladores -> Assemblers & DTOs
+  takodu.haimiya.analytics.analyticsController -> takodu.haimiya.analytics.analyticsAssemblers 'Transforma resultados a DTO con' 'Llamada interna'
+  takodu.haimiya.analytics.analyticsAssemblers -> takodu.haimiya.analytics.analyticsDtos 'Genera DTOs de' 'Referencia'
+
+  // 2. Controladores -> Aplicación
+  takodu.haimiya.analytics.analyticsController -> takodu.haimiya.analytics.analyticsQueryService 'Ejecuta consultas analíticas en' 'Llamada interna'
+
+  // 3. Aplicación -> Dominio
+  takodu.haimiya.analytics.analyticsQueryService -> takodu.haimiya.analytics.analyticsQueries 'Procesa queries de' 'Referencia'
+  takodu.haimiya.analytics.analyticsQueryService -> takodu.haimiya.analytics.analyticsReadModels 'Consulta proyecciones de' 'Referencia'
+  takodu.haimiya.analytics.analyticsReadModels -> takodu.haimiya.analytics.analyticsValueObjects 'Compuesto por' 'Referencia'
+
+  // 4. Aplicación -> Infraestructura
+  takodu.haimiya.analytics.analyticsQueryService -> takodu.haimiya.analytics.analyticsReadRepository 'Lee métricas agregadas en' 'Llamada a método'
+  takodu.haimiya.analytics.analyticsQueryService -> takodu.haimiya.analytics.deepSeekAiClient 'Genera resumen cualitativo con' 'Llamada a método'
+  takodu.haimiya.analytics.appointmentAnalyticsListener -> takodu.haimiya.analytics.analyticsReadRepository 'Actualiza contadores en' 'Llamada a método'
+
+  // 5. Infraestructura -> Almacenamiento y Externos
+  takodu.haimiya.analytics.analyticsReadRepository -> takodu.haimiyaDb 'Lee vistas agregadas en' 'JDBC / SQL'
+  takodu.haimiya.analytics.deepSeekAiClient -> deepseek 'Solicita generación de texto a' 'HTTPS / REST'
 }
